@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#140c36" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="description" content="Serge Belmont – Bubble Reveal : éclatez les boules, dissipez le brouillard et révélez les photographies." />
+    <title>Serge Belmont – Bubble Reveal</title>
+  </head>
+  <body>
+    <div id="stage">
+      <div id="game"></div>
+
+      <header id="hud" class="hidden">
+        <div class="hud-row">
+          <div class="pill"><span class="lbl">Niveau</span><b id="hud-level">1</b></div>
+          <div class="score"><span class="lbl">Score</span><b id="hud-score">0</b></div>
+          <div class="pill shots" title="Tirs restants"><i class="orb"></i><b id="hud-shots">0</b></div>
+          <button id="btn-sound" class="icon-btn" type="button" aria-label="Couper ou rétablir le son"></button>
+          <button id="btn-restart" class="icon-btn" type="button" aria-label="Recommencer le niveau">
+            <svg viewBox="0 0 24 24"><path d="M12 5a7 7 0 1 1-6.6 4.7" /><path d="M5 4v5.5h5.5" /></svg>
+          </button>
+        </div>
+        <div class="reveal">
+          <div class="reveal-bar">
+            <div id="reveal-fill"></div>
+            <div id="reveal-target"></div>
+          </div>
+          <span id="reveal-text"></span>
+        </div>
+      </header>
+
+      <section id="overlay-start" class="overlay">
+        <div class="start-card">
+          <p class="eyebrow">Le jeu officiel</p>
+          <h1>Serge Belmont</h1>
+          <h2>Bubble Reveal</h2>
+          <p class="tagline">Éclatez les boules, dissipez le brouillard<br />et révélez la photographie.</p>
+          <button id="btn-play" class="btn primary" type="button">Jouer</button>
+          <p class="version">Prototype jouable · v0.1</p>
+        </div>
+      </section>
+
+      <section id="overlay-end" class="overlay sheet hidden">
+        <div class="end-card">
+          <h3 id="end-title"></h3>
+          <p id="end-sub"></p>
+          <div id="end-stars" class="stars"><span>★</span><span>★</span><span>★</span></div>
+          <div class="stats">
+            <div><span class="lbl">Score</span><b id="end-score">0</b></div>
+            <div><span class="lbl">Photo révélée</span><b id="end-percent">0 %</b></div>
+            <div><span class="lbl">Tirs restants</span><b id="end-shots">0</b></div>
+          </div>
+          <p id="end-note" class="note"></p>
+          <div class="actions">
+            <button id="btn-again" class="btn secondary" type="button">Rejouer</button>
+            <button id="btn-next" class="btn primary" type="button">Niveau suivant</button>
+          </div>
+        </div>
+      </section>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
