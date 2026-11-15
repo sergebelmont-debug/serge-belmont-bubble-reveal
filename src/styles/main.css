@@ -396,6 +396,186 @@ body {
   font-size: calc(var(--u) * 30);
 }
 
+.actions .btn.compact {
+  flex: 0 0 auto;
+  padding: 0 calc(var(--u) * 26);
+}
+
+.home-progress {
+  margin: calc(var(--u) * 30) 0 0;
+  font-size: calc(var(--u) * 24);
+  font-weight: 500;
+  color: var(--gold);
+  min-height: calc(var(--u) * 30);
+}
+
+/* ───────── Carte des niveaux ───────── */
+.overlay.map {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  padding: 0;
+  background:
+    radial-gradient(80% 40% at 50% 0%, #5a3cc4 0%, transparent 70%),
+    radial-gradient(90% 50% at 50% 100%, #b0328f 0%, transparent 75%), #1a0f4a;
+}
+
+.map-head {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--u) * 14);
+  padding: calc(var(--u) * 14) calc(var(--u) * 18);
+  background: rgba(14, 8, 44, 0.6);
+  border-bottom: calc(var(--u) * 2) solid rgba(255, 255, 255, 0.14);
+  z-index: 2;
+}
+
+.map-head h3 {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font-size: calc(var(--u) * 40);
+  font-weight: 700;
+}
+
+.star-ico {
+  color: var(--gold);
+  font-size: calc(var(--u) * 30);
+  line-height: 1;
+}
+
+#map-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+#map-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+#map-path {
+  position: relative;
+  width: 100%;
+}
+
+#map-path svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.node {
+  position: absolute;
+  width: calc(var(--u) * 124);
+  height: calc(var(--u) * 124);
+  margin: calc(var(--u) * -62) 0 0 calc(var(--u) * -62);
+  border-radius: 50%;
+  border: calc(var(--u) * 5) solid rgba(255, 255, 255, 0.75);
+  font-family: var(--font);
+  font-weight: 700;
+  font-size: calc(var(--u) * 50);
+  color: #fff;
+  cursor: pointer;
+  text-shadow: 0 calc(var(--u) * 3) 0 rgba(0, 0, 0, 0.3);
+  background: radial-gradient(circle at 32% 26%, #d9d1ff 0%, #8f7dff 30%, #5a3fe0 70%, #2e1b94 100%);
+  box-shadow: 0 calc(var(--u) * 8) 0 #23136e, 0 calc(var(--u) * 16) calc(var(--u) * 24) rgba(0, 0, 0, 0.45);
+  transition: transform 0.08s ease;
+}
+
+.node:active {
+  transform: scale(0.93);
+}
+
+.node.done {
+  background: radial-gradient(circle at 32% 26%, #fff6cf 0%, #ffd66b 28%, #ffa81f 68%, #c56a00 100%);
+  box-shadow: 0 calc(var(--u) * 8) 0 #8a4a00, 0 calc(var(--u) * 16) calc(var(--u) * 24) rgba(0, 0, 0, 0.45);
+  color: #4a2300;
+  text-shadow: 0 calc(var(--u) * 2) 0 rgba(255, 255, 255, 0.5);
+}
+
+.node.current {
+  background: radial-gradient(circle at 32% 26%, #ffd9ef 0%, #ff7bd5 30%, #e0329f 70%, #8a1260 100%);
+  box-shadow: 0 calc(var(--u) * 8) 0 #6b0d4a, 0 0 calc(var(--u) * 40) rgba(255, 123, 213, 0.9);
+  animation: breathe 1.4s ease-in-out infinite;
+}
+
+.node.locked {
+  background: radial-gradient(circle at 32% 26%, #6f6a94 0%, #46416b 60%, #2a2647 100%);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 calc(var(--u) * 8) 0 #1a1730;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.node.locked svg {
+  width: 44%;
+  height: 44%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.node.shake {
+  animation: shake 0.35s ease;
+}
+
+.node-stars {
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  margin-top: calc(var(--u) * 12);
+  font-size: calc(var(--u) * 30);
+  letter-spacing: calc(var(--u) * 2);
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.2);
+  text-shadow: none;
+}
+
+.node-stars i {
+  font-style: normal;
+}
+
+.node-stars i.on {
+  color: var(--gold);
+  text-shadow: 0 0 calc(var(--u) * 10) rgba(255, 200, 60, 0.8);
+}
+
+.node-title {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  margin-bottom: calc(var(--u) * 16);
+  padding: calc(var(--u) * 6) calc(var(--u) * 18);
+  border-radius: calc(var(--u) * 20);
+  background: #fff;
+  color: #4a1a8a;
+  font-size: calc(var(--u) * 22);
+  font-weight: 600;
+  white-space: nowrap;
+  text-shadow: none;
+  box-shadow: 0 calc(var(--u) * 6) calc(var(--u) * 14) rgba(0, 0, 0, 0.35);
+}
+
+@keyframes shake {
+  25% {
+    transform: translateX(calc(var(--u) * -8));
+  }
+  75% {
+    transform: translateX(calc(var(--u) * 8));
+  }
+}
+
 @keyframes fade {
   from {
     opacity: 0;

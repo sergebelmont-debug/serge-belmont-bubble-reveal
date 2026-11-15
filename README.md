@@ -3,7 +3,7 @@
 Bubble Shooter mobile (web) : chaque combinaison dissipe un brouillard et révèle
 progressivement une photographie de Serge Belmont.
 
-**État actuel : prototype jouable (v0.1)** — 3 niveaux, photos provisoires.
+**État actuel : v0.2** — 12 niveaux, carte de progression, photos provisoires.
 Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) pour l'architecture et la feuille de route.
 
 ## Lancer le jeu sur son ordinateur
@@ -43,9 +43,11 @@ provisoire est affichée à la place.
 
 ## Ajouter un niveau
 
-Ajouter une entrée dans le tableau `LEVELS` de [src/data/levels.ts](src/data/levels.ts) :
-numéro, titre, photo, nombre de tirs, nombre de couleurs, nombre de rangées,
-graine (`seed`), objectif de révélation. Chaque champ est commenté dans le fichier.
+Ajouter une ligne à la liste `LEVELS` de [src/data/levels.ts](src/data/levels.ts) :
+titre, difficulté, forme (`plein`, `pyramide`, `sablier`, `colonnes`, `vagues`,
+`arches`), nombre de couleurs, de rangées et de tirs, objectif de révélation,
+graine (`seed`). Le numéro est attribué automatiquement selon la position dans
+la liste, et la carte des niveaux s'allonge toute seule.
 Une disposition manuelle est possible avec `layout` (une chaîne par rangée,
 un chiffre par boule, `.` pour un vide).
 

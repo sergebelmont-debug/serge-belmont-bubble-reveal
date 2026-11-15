@@ -1,12 +1,17 @@
 import { bus, type LevelResult } from '../app/bus';
 import { sfx } from '../audio/Sfx';
+import { DESIGN_W } from '../config/gameConfig';
+import { LEVELS } from '../data/levels';
 import { loadSave, writeSave } from '../services/SaveService';
+import { renderMap, totalStars } from './LevelMap';
 
-/** Interface HTML : barre d'état, écran de démarrage, écrans de fin de niveau. */
+/** Interface HTML : accueil, carte des niveaux, barre d'état, écrans de fin de niveau. */
 export interface UiActions {
-  play(): void;
-  restart(levelIndex: number): void;
-  next(levelIndex: number): void;
+  startLevel(levelIndex: number): void;
+  /** Met la scène de jeu en pause (carte affichée). */
+  pause(): void;
+  /** Relance la scène de jeu (retour à l'accueil). */
+  resume(): void;
 }
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string): T => document.getElementById(id) as T;
@@ -18,13 +23,49 @@ const ICON_SOUND_OFF =
 
 export function initUi(actions: UiActions): void {
   const hud = $('hud');
-  const start = $('overlay-start');
+  const home = $('overlay-start');
+  const map = $('screen-map');
   const end = $('overlay-end');
   const scoreEl = $('hud-score');
   const shotsPill = $('hud-shots').parentElement!;
   const soundBtn = $<HTMLButtonElement>('btn-sound');
   let levelIndex = 0;
   let lastScore = 0;
+
+  const hideAll = (): void => {
+    for (const el of [hud, home, map, end]) el.classList.add('hidden');
+  };
+
+  const showHome = (): void => {
+    hideAll();
+    const save = loadSave();
+    const stars = totalStars();
+    $('home-progress').textContent =
+      save.unlocked > 0 ? `★ ${stars} · Niveau ${Math.min(save.unlocked + 1, LEVELS.length)} sur ${LEVELS.length}` : '';
+    home.classList.remove('hidden');
+    actions.resume();
+  };
+
+  const showMap = (): void => {
+    hideAll();
+    actions.pause();
+    map.classList.remove('hidden');
+    $('map-stars').textContent = `${totalStars()} / ${LEVELS.length * 3}`;
+    const scroll = $('map-scroll');
+    const currentY = renderMap($('map-path'), {
+      onPick: (i) => play(i),
+      onLocked: () => sfx.bounce(),
+    });
+    const unit = $('stage').clientWidth / DESIGN_W;
+    scroll.scrollTop = currentY * unit - scroll.clientHeight / 2;
+  };
+
+  const play = (index: number): void => {
+    sfx.click();
+    hideAll();
+    hud.classList.remove('hidden');
+    actions.startLevel(Math.max(0, Math.min(index, LEVELS.length - 1)));
+  };
 
   const renderSound = (): void => {
     soundBtn.innerHTML = sfx.muted ? ICON_SOUND_OFF : ICON_SOUND_ON;
@@ -44,28 +85,23 @@ export function initUi(actions: UiActions): void {
   $('btn-play').addEventListener('click', () => {
     sfx.unlock();
     sfx.click();
-    start.classList.add('hidden');
-    hud.classList.remove('hidden');
-    actions.play();
+    showMap();
   });
-
-  $('btn-restart').addEventListener('click', () => {
+  $('btn-map-home').addEventListener('click', () => {
     sfx.click();
-    end.classList.add('hidden');
-    actions.restart(levelIndex);
+    showHome();
   });
-
-  $('btn-again').addEventListener('click', () => {
+  $('btn-map').addEventListener('click', () => {
     sfx.click();
-    end.classList.add('hidden');
-    actions.restart(levelIndex);
+    showMap();
   });
-
-  $('btn-next').addEventListener('click', () => {
+  $('btn-end-map').addEventListener('click', () => {
     sfx.click();
-    end.classList.add('hidden');
-    actions.next(levelIndex);
+    showMap();
   });
+  $('btn-restart').addEventListener('click', () => play(levelIndex));
+  $('btn-again').addEventListener('click', () => play(levelIndex));
+  $('btn-next').addEventListener('click', () => play(levelIndex + 1));
 
   bus.on('ready', (e) => {
     levelIndex = e.levelIndex;
@@ -89,6 +125,8 @@ export function initUi(actions: UiActions): void {
   });
 
   const showEnd = (r: LevelResult, won: boolean): void => {
+    // Si le joueur a quitté le niveau entre-temps, on n'affiche rien.
+    if (hud.classList.contains('hidden')) return;
     $('end-title').textContent = won ? 'Photo révélée !' : r.reason === 'line' ? 'Les boules ont débordé…' : 'Plus de tirs…';
     $('end-sub').textContent = won
       ? `Niveau ${r.levelNumber} · « ${r.title} »`
@@ -110,4 +148,6 @@ export function initUi(actions: UiActions): void {
 
   bus.on('win', (r) => showEnd(r, true));
   bus.on('lose', (r) => showEnd(r, false));
+
+  showHome();
 }

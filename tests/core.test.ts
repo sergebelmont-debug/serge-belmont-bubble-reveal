@@ -88,13 +88,20 @@ describe('traceShot', () => {
 });
 
 describe('niveaux', () => {
-  it('chaque niveau est jouable : rangées pleines, aucune boule flottante', () => {
+  it('chaque niveau est jouable : assez de boules, aucune boule flottante', () => {
     for (const level of LEVELS) {
       const g = buildGrid(level);
-      expect(g.count()).toBe(level.rows * 11);
+      if ((level.pattern ?? 'plein') === 'plein') expect(g.count()).toBe(level.rows * 11);
+      expect(g.count(), level.id).toBeGreaterThanOrEqual(30);
       expect(g.findFloating()).toHaveLength(0);
       expect(g.colorsPresent().length).toBeLessThanOrEqual(level.colors);
+      expect(level.rows, level.id).toBeLessThanOrEqual(10);
     }
+  });
+
+  it('les identifiants et numéros de niveaux sont uniques et ordonnés', () => {
+    LEVELS.forEach((level, i) => expect(level.number).toBe(i + 1));
+    expect(new Set(LEVELS.map((l) => l.id)).size).toBe(LEVELS.length);
   });
 
   it('la génération est déterministe', () => {

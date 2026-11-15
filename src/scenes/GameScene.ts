@@ -54,6 +54,8 @@ export interface SceneData {
 
 const cellKey = (row: number, col: number): number => row * 64 + col;
 const GRAVITY = 2600;
+/** Accélération du temps, réservée aux tests d'équilibrage (1 = normal). */
+let debugSpeed = 1;
 
 export class GameScene extends Phaser.Scene {
   private levelIndex = 0;
@@ -74,6 +76,8 @@ export class GameScene extends Phaser.Scene {
   private nextX = 0;
   private nextY = 0;
   private bScale = 1;
+  /** Sur les écrans hauts, les dissipations sont un peu plus larges (équité entre appareils). */
+  private hScale = 1;
 
   private aimAngle = -Math.PI / 2;
   private aiming = false;
@@ -143,6 +147,10 @@ export class GameScene extends Phaser.Scene {
 
     createGameTextures(this, view.scale);
     this.bScale = BUBBLE_SPRITE_SIZE / this.textures.get(bubbleKey(0)).getSourceImage().width;
+
+    this.hScale = Math.sqrt(this.viewH / 1280);
+    this.time.timeScale = debugSpeed;
+    this.tweens.timeScale = debugSpeed;
 
     this.cannonY = this.viewH - CANNON_FROM_BOTTOM;
     this.loseRow = Math.ceil((this.cannonY - 170 - GEOM.top - GEOM.r) / GEOM.rowH);
@@ -479,7 +487,7 @@ export class GameScene extends Phaser.Scene {
 
   private popCluster(cluster: Cell[], ox: number, oy: number): void {
     const n = cluster.length;
-    const radius = BUBBLE_R * (2.5 + 0.28 * Math.min(n, 10)) * this.level.reveal.radius;
+    const radius = BUBBLE_R * (2.5 + 0.28 * Math.min(n, 10)) * this.level.reveal.radius * this.hScale;
     const strength = this.level.reveal.strength;
     const sorted = cluster
       .map((c) => ({ c, x: cellX(GEOM, c.row, c.col), y: cellY(GEOM, c.row) }))
@@ -559,7 +567,7 @@ export class GameScene extends Phaser.Scene {
     const s = dt / 1000;
     const minX = GEOM.left + GEOM.r;
     const maxX = GEOM.left + GEOM.width - GEOM.r;
-    const rMul = this.level.reveal.radius;
+    const rMul = this.level.reveal.radius * this.hScale;
     for (let i = this.fallers.length - 1; i >= 0; i--) {
       const f = this.fallers[i];
       const sp = f.sprite;
@@ -763,7 +771,7 @@ export class GameScene extends Phaser.Scene {
   // ───────────────────────────── Boucle de jeu ─────────────────────────────
 
   update(_time: number, delta: number): void {
-    const dt = Math.min(delta, 50);
+    const dt = Math.min(delta, 50) * debugSpeed;
     this.fog.update(dt);
     if (this.flight) this.updateFlight(dt);
     if (this.fallers.length) this.updateFallers(dt);
@@ -883,9 +891,17 @@ export class GameScene extends Phaser.Scene {
     return true;
   }
 
+  /** Outil de test : accélère le jeu pour dérouler vite des parties entières. */
+  debugSetSpeed(speed: number): void {
+    debugSpeed = speed;
+    this.time.timeScale = speed;
+    this.tweens.timeScale = speed;
+  }
+
   /** État résumé pour les tests automatisés. */
   debugState() {
     return {
+      level: this.level.number,
       state: this.state,
       score: this.score,
       shots: this.shots,

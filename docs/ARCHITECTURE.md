@@ -27,7 +27,8 @@ src/
   scenes/GameScene.ts      Scène de jeu Phaser (orchestration)
   audio/Sfx.ts             Effets sonores synthétisés (Web Audio)
   services/                Photos (seul module qui connaît leurs chemins), sauvegarde
-  ui/Hud.ts                Interface HTML : barre d'état, écrans de début / fin
+  ui/Hud.ts                Interface HTML : accueil, barre d'état, écrans de fin
+  ui/LevelMap.ts           Carte des niveaux (générée depuis data/levels.ts)
   app/                     Bus d'événements jeu ↔ interface, dimensions de vue
 public/assets/             Photos, miniatures, audio, interface, polices
 tests/                     Tests du moteur
@@ -56,8 +57,10 @@ communiquent que par le bus d'événements (`app/bus.ts`).
 - [x] **Phase 1 – Conception** : architecture, mécaniques.
 - [x] **Phase 2 – Prototype jouable** : canon, visée, rebonds, collisions,
       combinaisons, chutes, révélation, victoire / défaite, 3 niveaux.
-- [ ] **Phase 3 – Moteur complet** : carte des niveaux, dispositions variées,
-      équilibrage, étoiles, boules spéciales, réglages graphiques.
+- [x] **Phase 3 – Progression** : carte des niveaux (terminés / disponible /
+      verrouillés, étoiles), 12 niveaux, 6 formes de disposition, équilibrage
+      par parties simulées, navigation accueil ↔ carte ↔ jeu.
+- [ ] **Phase 3 bis** : boules spéciales, récompenses d'étape, réglages graphiques.
 - [ ] **Phase 4 – Polish graphique** : affinage des sphères, du canon, des transitions.
 - [ ] **Phase 5 – Sound design** : musiques (ambiance, victoire, défaite),
       réglages séparés musique / effets / volume général.

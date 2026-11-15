@@ -4,7 +4,6 @@ import Phaser from 'phaser';
 import { view } from './app/view';
 import { sfx } from './audio/Sfx';
 import { DESIGN_W, MAX_H, MIN_H } from './config/gameConfig';
-import { LEVELS } from './data/levels';
 import { GameScene, type SceneData } from './scenes/GameScene';
 import { initUi } from './ui/Hud';
 
@@ -53,15 +52,17 @@ async function boot(): Promise<void> {
   });
 
   const scene = (): GameScene => game.scene.getScene('Game') as GameScene;
-  const startLevel = (levelIndex: number): void => {
-    const data: SceneData = { levelIndex, autostart: true };
-    scene().scene.restart(data);
-  };
-
   initUi({
-    play: () => scene().beginPlay(),
-    restart: (levelIndex) => startLevel(levelIndex),
-    next: (levelIndex) => startLevel(Math.min(levelIndex + 1, LEVELS.length - 1)),
+    startLevel: (levelIndex) => {
+      const data: SceneData = { levelIndex, autostart: true };
+      scene().scene.restart(data);
+    },
+    pause: () => {
+      if (scene().scene.isActive()) scene().scene.pause();
+    },
+    resume: () => {
+      if (scene()?.scene.isPaused()) scene().scene.resume();
+    },
   });
 
   // Interruptions (appel, changement d'onglet) : le son est suspendu.
