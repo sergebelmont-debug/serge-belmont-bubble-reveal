@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { BUBBLE_COLORS, BUBBLE_R, type BubbleColor } from '../config/gameConfig';
+import { createCannonTextures } from './CannonTextures';
 
 /**
  * Textures procédurales : sphères de cristal glossy, canon et particules.
@@ -184,91 +185,5 @@ export function createGameTextures(scene: Phaser.Scene, scale: number): void {
     tex.refresh();
   }
 
-  // Canon : fût.
-  {
-    const w = 64;
-    const h = 132;
-    const tex = scene.textures.createCanvas('cannon-barrel', Math.ceil(w * scale), Math.ceil(h * scale))!;
-    const ctx = tex.context;
-    ctx.scale(scale, scale);
-    const body = ctx.createLinearGradient(8, 0, w - 8, 0);
-    body.addColorStop(0, '#2a1d6b');
-    body.addColorStop(0.3, '#8f7dff');
-    body.addColorStop(0.5, '#d9d1ff');
-    body.addColorStop(0.7, '#7a66ee');
-    body.addColorStop(1, '#221556');
-    ctx.fillStyle = body;
-    ctx.beginPath();
-    ctx.roundRect(12, 10, w - 24, h - 14, 12);
-    ctx.fill();
-    // Bagues dorées.
-    const gold = ctx.createLinearGradient(6, 0, w - 6, 0);
-    gold.addColorStop(0, '#8a5a00');
-    gold.addColorStop(0.35, '#ffd86b');
-    gold.addColorStop(0.55, '#fff6cf');
-    gold.addColorStop(0.8, '#e0a321');
-    gold.addColorStop(1, '#7a4c00');
-    ctx.fillStyle = gold;
-    ctx.beginPath();
-    ctx.roundRect(6, 4, w - 12, 16, 7);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.roundRect(9, 58, w - 18, 9, 4);
-    ctx.fill();
-    tex.refresh();
-  }
-
-  // Canon : socle circulaire.
-  {
-    const s = 156;
-    const tex = scene.textures.createCanvas('cannon-base', Math.ceil(s * scale), Math.ceil(s * scale))!;
-    const ctx = tex.context;
-    ctx.scale(scale, scale);
-    const c = s / 2;
-    ctx.shadowColor = 'rgba(5,2,25,0.6)';
-    ctx.shadowBlur = 14;
-    ctx.shadowOffsetY = 5;
-    const gold = ctx.createLinearGradient(0, 10, 0, s - 10);
-    gold.addColorStop(0, '#fff3c4');
-    gold.addColorStop(0.45, '#f0b535');
-    gold.addColorStop(1, '#8a5a00');
-    ctx.fillStyle = gold;
-    ctx.beginPath();
-    ctx.arc(c, c, 62, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowColor = 'transparent';
-    const inner = ctx.createRadialGradient(c - 14, c - 18, 4, c, c, 56);
-    inner.addColorStop(0, '#6e5bd8');
-    inner.addColorStop(0.6, '#2d1f78');
-    inner.addColorStop(1, '#150c40');
-    ctx.fillStyle = inner;
-    ctx.beginPath();
-    ctx.arc(c, c, 54, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(c, c, 46, Math.PI * 1.05, Math.PI * 1.75);
-    ctx.stroke();
-    tex.refresh();
-  }
-
-  // Support de la boule suivante.
-  {
-    const s = 92;
-    const tex = scene.textures.createCanvas('next-holder', Math.ceil(s * scale), Math.ceil(s * scale))!;
-    const ctx = tex.context;
-    ctx.scale(scale, scale);
-    const c = s / 2;
-    ctx.fillStyle = 'rgba(20,12,60,0.55)';
-    ctx.beginPath();
-    ctx.arc(c, c, 38, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,214,107,0.85)';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(c, c, 38, 0, Math.PI * 2);
-    ctx.stroke();
-    tex.refresh();
-  }
+  createCannonTextures(scene, scale);
 }

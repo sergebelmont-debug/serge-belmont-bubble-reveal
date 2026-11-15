@@ -18,6 +18,12 @@ async function boot(): Promise<void> {
     /* police de secours */
   }
 
+  // Certains navigateurs intégrés chargent la page dans une vue encore sans
+  // dimensions : on attend qu'elle soit affichée avant de créer le jeu.
+  while (window.innerWidth < 50 || window.innerHeight < 50) {
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+
   // Format vertical : le plateau fait toujours 720 unités de large ; sa hauteur
   // suit l'écran (du 9:14,75 au 9:20) pour remplir les smartphones sans bandes.
   const stage = document.getElementById('stage')!;
