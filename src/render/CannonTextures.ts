@@ -1,8 +1,8 @@
 import Phaser from 'phaser';
 
 /**
- * Textures procédurales du canon : fût, socle, piédestal, supports ronds
- * (boule suivante / bouton « Passer ») et icône du bouton.
+ * Textures procédurales du canon : fût, socle, piédestal et supports ronds
+ * (boule suivante / minuteur de changement).
  * Les dimensions exportées sont en unités de jeu.
  */
 export const BARREL_W = 88;
@@ -11,7 +11,6 @@ export const BASE_SIZE = 198;
 export const STAND_W = 236;
 export const STAND_H = 112;
 export const HOLDER_SIZE = 100;
-export const SKIP_ICON_SIZE = 46;
 
 type Ctx = CanvasRenderingContext2D;
 
@@ -328,24 +327,6 @@ function drawHolder(ctx: Ctx): void {
   ctx.stroke();
 }
 
-function drawSkipIcon(ctx: Ctx): void {
-  const s = SKIP_ICON_SIZE;
-  ctx.fillStyle = '#ffffff';
-  ctx.strokeStyle = 'rgba(30,14,90,0.85)';
-  ctx.lineWidth = 2;
-  ctx.lineJoin = 'round';
-  // Deux flèches « avance rapide ».
-  for (const x of [5, 21]) {
-    ctx.beginPath();
-    ctx.moveTo(x, 9);
-    ctx.lineTo(x + 17, s / 2);
-    ctx.lineTo(x, s - 9);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  }
-}
-
 /** Crée les textures du canon (appelé une fois ; `scale` = densité de rendu). */
 export function createCannonTextures(scene: Phaser.Scene, scale: number): void {
   if (scene.textures.exists('cannon-barrel')) return;
@@ -357,5 +338,4 @@ export function createCannonTextures(scene: Phaser.Scene, scale: number): void {
   draw('cannon-base', BASE_SIZE, BASE_SIZE, drawBase);
   draw('cannon-stand', STAND_W, STAND_H, drawStand);
   draw('round-holder', HOLDER_SIZE, HOLDER_SIZE, drawHolder);
-  draw('skip-icon', SKIP_ICON_SIZE, SKIP_ICON_SIZE, drawSkipIcon);
 }

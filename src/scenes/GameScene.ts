@@ -21,7 +21,7 @@ import { GEOM, cellX, cellY } from '../core/geometry';
 import { traceShot, type Point, type ShotTrace } from '../core/trajectory';
 import { LEVELS, type LevelDef } from '../data/levels';
 import { BUBBLE_SPRITE_SIZE, bubbleKey, createGameTextures } from '../render/BubbleTextures';
-import { BARREL_H, BARREL_W, BASE_SIZE, HOLDER_SIZE, SKIP_ICON_SIZE, STAND_H, STAND_W } from '../render/CannonTextures';
+import { BARREL_H, BARREL_W, BASE_SIZE, HOLDER_SIZE, STAND_H, STAND_W } from '../render/CannonTextures';
 import { FogReveal } from '../render/FogReveal';
 import { createPlaceholderPhoto, photoTextureKey, photoUrl } from '../services/PhotoService';
 import { recordResult } from '../services/SaveService';
@@ -55,7 +55,7 @@ export interface SceneData {
 
 const cellKey = (row: number, col: number): number => row * 64 + col;
 const GRAVITY = 2600;
-/** Délai (ms) avant de pouvoir passer la boule chargée. */
+/** Délai (ms) avant que la boule chargée soit remplacée automatiquement. */
 const SKIP_DELAY = 3000;
 /** Distance du centre du canon à la bouche du fût. */
 const MUZZLE_DIST = 180;
@@ -100,10 +100,9 @@ export class GameScene extends Phaser.Scene {
 
   private skipX = 0;
   private skipY = 0;
-  /** Temps restant (ms) avant que le bouton « Passer » soit disponible. */
+  /** Temps restant (ms) avant le changement automatique de la boule chargée. */
   private skipCooldown = SKIP_DELAY;
   private skipRing!: Phaser.GameObjects.Graphics;
-  private skipIcon!: Image;
   private skipText!: Phaser.GameObjects.Text;
 
   private sprites = new Map<number, Image>();
@@ -317,8 +316,8 @@ export class GameScene extends Phaser.Scene {
       .setDisplaySize(HOLDER_SIZE, HOLDER_SIZE)
       .setDepth(DEPTH.cannon);
 
-    // Bouton « Passer » : change de boule sans tirer, disponible 3 s après
-    // chaque nouvelle boule chargée.
+    // Minuteur de changement automatique : au bout de 3 s sans tirer, la boule
+    // chargée est remplacée par la suivante (simple affichage, pas un bouton).
     this.skipX = this.cannonX + 178;
     this.skipY = this.nextY;
     this.add
@@ -326,11 +325,6 @@ export class GameScene extends Phaser.Scene {
       .setDisplaySize(HOLDER_SIZE, HOLDER_SIZE)
       .setDepth(DEPTH.cannon);
     this.skipRing = this.add.graphics().setDepth(DEPTH.cannon + 1);
-    this.skipIcon = this.add
-      .image(this.skipX + 2, this.skipY, 'skip-icon')
-      .setDisplaySize(SKIP_ICON_SIZE, SKIP_ICON_SIZE)
-      .setDepth(DEPTH.cannon + 2)
-      .setVisible(false);
     this.skipText = this.add
       .text(this.skipX, this.skipY, '3', {
         fontFamily: '"Fredoka Variable", system-ui, sans-serif',
@@ -343,7 +337,7 @@ export class GameScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setDepth(DEPTH.cannon + 2)
       .setResolution(view.scale);
-    for (const [x, label] of [[this.nextX, 'SUIVANTE'], [this.skipX, 'PASSER']] as const) {
+    for (const [x, label] of [[this.nextX, 'SUIVANTE'], [this.skipX, 'CHANGEMENT']] as const) {
       this.add
         .text(x, this.nextY + 62, label, {
           fontFamily: '"Fredoka Variable", system-ui, sans-serif',
@@ -374,10 +368,6 @@ export class GameScene extends Phaser.Scene {
       if (this.state !== 'aiming') return;
       if (Math.hypot(p.worldX - this.nextX, p.worldY - this.nextY) < 58) {
         this.swapBubbles();
-        return;
-      }
-      if (Math.hypot(p.worldX - this.skipX, p.worldY - this.skipY) < 58) {
-        this.skipBubble();
         return;
       }
       this.aiming = true;
@@ -434,17 +424,10 @@ export class GameScene extends Phaser.Scene {
   }
 
   /**
-   * Passe la boule chargée sans la tirer : la suivante prend sa place.
-   * Ne coûte aucun tir, mais n'est possible qu'une fois le minuteur écoulé.
+   * Changement automatique : quand le minuteur arrive à zéro, la boule chargée
+   * cède sa place à la suivante, sans coûter de tir.
    */
-  private skipBubble(): void {
-    if (this.state !== 'aiming' || this.shots < 1) return;
-    if (this.skipCooldown > 0) {
-      // Pas encore prêt : petit signal de refus.
-      sfx.bounce();
-      this.tweens.add({ targets: this.skipText, scale: 1.3, duration: 80, yoyo: true });
-      return;
-    }
+  private autoChangeBubble(): void {
     const old = this.current;
     const ghost = this.takeBubble(old, this.cannonX, this.cannonY).setDepth(DEPTH.cannon + 3);
     this.tweens.add({
@@ -468,33 +451,28 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateSkip(dt: number): void {
-    if (this.skipCooldown > 0 && this.state !== 'idle') {
-      this.skipCooldown = Math.max(0, this.skipCooldown - dt);
-      if (this.skipCooldown === 0 && this.state === 'aiming') {
-        sfx.ready();
-        this.skipIcon.setScale(this.skipIcon.scale * 0.5);
-        this.tweens.add({
-          targets: this.skipIcon,
-          displayWidth: SKIP_ICON_SIZE,
-          displayHeight: SKIP_ICON_SIZE,
-          duration: 220,
-          ease: 'Back.easeOut',
-        });
-      }
+    // Le minuteur ne tourne que lorsque le joueur peut tirer, et se fige tant
+    // que le doigt vise : la boule ne change jamais au milieu d'un tir préparé.
+    const running = this.state === 'aiming' && this.shots > 0;
+    if (running && !this.aiming) {
+      this.skipCooldown -= dt;
+      if (this.skipCooldown <= 0) this.autoChangeBubble();
     }
-    const ready = this.skipCooldown === 0;
-    const usable = ready && this.shots > 0 && this.state !== 'won' && this.state !== 'lost';
-    const progress = 1 - this.skipCooldown / SKIP_DELAY;
+    const left = Math.max(0, this.skipCooldown) / SKIP_DELAY;
     const g = this.skipRing;
     g.clear();
     g.lineStyle(7, 0x0e0830, 0.55);
     g.strokeCircle(this.skipX, this.skipY, 40);
-    g.lineStyle(7, ready ? 0x6dffb0 : 0xffd66b, usable || !ready ? 1 : 0.35);
-    g.beginPath();
-    g.arc(this.skipX, this.skipY, 40, -Math.PI / 2, -Math.PI / 2 + Math.max(0.001, progress) * Math.PI * 2, false);
-    g.strokePath();
-    this.skipText.setVisible(!ready).setText(String(Math.ceil(this.skipCooldown / 1000)));
-    this.skipIcon.setVisible(ready).setAlpha(usable ? 1 : 0.35);
+    if (running) {
+      // L'anneau se vide ; il vire au rose pendant la dernière seconde.
+      g.lineStyle(7, this.skipCooldown <= 1000 ? 0xff7bd5 : 0xffd66b, 1);
+      g.beginPath();
+      g.arc(this.skipX, this.skipY, 40, -Math.PI / 2, -Math.PI / 2 + Math.max(0.001, left) * Math.PI * 2, false);
+      g.strokePath();
+    }
+    this.skipText
+      .setText(String(Math.max(1, Math.ceil(this.skipCooldown / 1000))))
+      .setAlpha(running ? 1 : 0.35);
   }
 
   /** Couleur au hasard parmi celles encore présentes (en évitant `except` si possible). */

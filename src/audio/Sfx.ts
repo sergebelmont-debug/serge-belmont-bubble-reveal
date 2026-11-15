@@ -133,11 +133,6 @@ class SfxEngine {
     this.tone(700, 0.06, 'sine', 0.14, 940);
   }
 
-  /** Le bouton « Passer » redevient disponible. */
-  ready(): void {
-    this.tone(990, 0.09, 'sine', 0.1, 1320);
-  }
-
   click(): void {
     this.tone(880, 0.05, 'sine', 0.12, 1100);
   }
