@@ -60,6 +60,9 @@ communiquent que par le bus d'événements (`app/bus.ts`).
 - [x] **Phase 3 – Progression** : carte des niveaux (terminés / disponible /
       verrouillés, étoiles), 12 niveaux, 6 formes de disposition, équilibrage
       par parties simulées, navigation accueil ↔ carte ↔ jeu.
+- [x] **Murs incassables** : barres à rebonds (core/walls.ts), de plus en plus
+      contraignantes du niveau 3 au niveau 12 ; changement automatique de la
+      boule après 3 secondes ; canon redessiné.
 - [ ] **Phase 3 bis** : boules spéciales, récompenses d'étape, réglages graphiques.
 - [ ] **Phase 4 – Polish graphique** : affinage des sphères, du canon, des transitions.
 - [ ] **Phase 5 – Sound design** : musiques (ambiance, victoire, défaite),

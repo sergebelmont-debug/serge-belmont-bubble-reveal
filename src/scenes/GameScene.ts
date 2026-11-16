@@ -19,6 +19,8 @@ import { EMPTY, type Cell, type HexGrid } from '../core/HexGrid';
 import { buildGrid } from '../core/LevelGenerator';
 import { GEOM, cellX, cellY } from '../core/geometry';
 import { traceShot, type Point, type ShotTrace } from '../core/trajectory';
+import { wallRect, type Rect } from '../core/walls';
+import { WALL_PAD, wallTexture } from '../render/WallTextures';
 import { LEVELS, type LevelDef } from '../data/levels';
 import { BUBBLE_SPRITE_SIZE, bubbleKey, createGameTextures } from '../render/BubbleTextures';
 import { BARREL_H, BARREL_W, BASE_SIZE, HOLDER_SIZE, STAND_H, STAND_W } from '../render/CannonTextures';
@@ -37,6 +39,7 @@ interface Flight {
   seg: number;
   cell: Cell | null;
   carve: number;
+  lost: boolean;
 }
 
 interface Faller {
@@ -69,6 +72,7 @@ export class GameScene extends Phaser.Scene {
   private viewH = 1280;
 
   private grid!: HexGrid;
+  private wallRects: Rect[] = [];
   private fog!: FogReveal;
   private state: State = 'idle';
   private score = 0;
@@ -271,8 +275,26 @@ export class GameScene extends Phaser.Scene {
     this.guide = this.add.graphics().setDepth(DEPTH.guide);
   }
 
+  /** Trajectoire d'un tir à l'angle donné, murs du niveau compris. */
+  private traceAt(angle: number): ShotTrace {
+    return traceShot(this.grid, GEOM, this.cannonX, this.cannonY, angle, {
+      walls: this.wallRects,
+      floorY: this.viewH + 50,
+    });
+  }
+
   private createBoard(): void {
     this.grid = buildGrid(this.level);
+
+    // Murs incassables : mêmes rectangles pour le calcul des rebonds et l'affichage.
+    this.wallRects = (this.level.walls ?? []).map((w) => wallRect(GEOM, w));
+    for (const r of this.wallRects) {
+      this.add
+        .image(r.x + r.w / 2, r.y + r.h / 2, wallTexture(this, r.w, r.h, view.scale))
+        .setDisplaySize(r.w + WALL_PAD * 2, r.h + WALL_PAD * 2)
+        .setDepth(DEPTH.bubbles - 2);
+    }
+
     for (const { row, col } of this.grid.occupied()) {
       const x = cellX(GEOM, row, col);
       const y = cellY(GEOM, row);
@@ -484,10 +506,18 @@ export class GameScene extends Phaser.Scene {
   }
 
   private fire(): void {
-    const trace = traceShot(this.grid, GEOM, this.cannonX, this.cannonY, this.aimAngle);
+    const trace = this.traceAt(this.aimAngle);
     const sprite = this.takeBubble(this.current, this.cannonX, this.cannonY);
     sprite.setDepth(DEPTH.falling);
-    this.flight = { sprite, color: this.current, points: trace.points, seg: 0, cell: trace.cell, carve: 0 };
+    this.flight = {
+      sprite,
+      color: this.current,
+      points: trace.points,
+      seg: 0,
+      cell: trace.cell,
+      carve: 0,
+      lost: trace.lost,
+    };
     this.state = 'flying';
     this.shots--;
     this.guide.clear();
@@ -555,6 +585,14 @@ export class GameScene extends Phaser.Scene {
     this.flight = null;
     const sprite = f.sprite;
 
+    if (f.lost) {
+      // Renvoyée vers le bas par un mur, la boule est sortie du plateau : tir perdu.
+      this.recycle(sprite);
+      sfx.drop(1);
+      this.popup(Phaser.Math.Clamp(sprite.x, 120, DESIGN_W - 120), this.viewH - 150, 'Tir perdu', 38, '#ff9db0');
+      this.afterShot();
+      return;
+    }
     if (!f.cell) {
       // Cas rarissime : aucune place libre, la boule éclate simplement.
       this.burst(sprite, f.color, 0);
@@ -921,7 +959,7 @@ export class GameScene extends Phaser.Scene {
     g.clear();
     if (this.state !== 'aiming' || !this.guideVisible) return;
     if (this.traceDirty || !this.trace) {
-      this.trace = traceShot(this.grid, GEOM, this.cannonX, this.cannonY, this.aimAngle);
+      this.trace = this.traceAt(this.aimAngle);
       this.traceDirty = false;
     }
     const pts = this.trace.points;
@@ -930,7 +968,7 @@ export class GameScene extends Phaser.Scene {
     let carry = (this.time.now * 0.07) % spacing;
     let travelled = 0;
     let dots = 0;
-    for (let i = 0; i < pts.length - 1 && dots < 70; i++) {
+    for (let i = 0; i < pts.length - 1 && dots < 150; i++) {
       const a = pts[i];
       const b = pts[i + 1];
       const len = Math.hypot(b.x - a.x, b.y - a.y);
@@ -938,9 +976,9 @@ export class GameScene extends Phaser.Scene {
       const ux = (b.x - a.x) / len;
       const uy = (b.y - a.y) / len;
       let d = carry;
-      while (d < len && dots < 70) {
+      while (d < len && dots < 150) {
         if (travelled + d > MUZZLE_DIST + 14) {
-          const alpha = Math.max(0.3, 0.95 - dots * 0.014);
+          const alpha = Math.max(0.3, 0.95 - dots * 0.008);
           g.fillStyle(0xffffff, alpha);
           g.fillCircle(a.x + ux * d, a.y + uy * d, 5.2);
           g.fillStyle(tint, alpha);
@@ -996,7 +1034,7 @@ export class GameScene extends Phaser.Scene {
     let bestScore = -1;
     for (let deg = MIN_AIM_DEG + 1; deg < 180 - MIN_AIM_DEG; deg += 1) {
       const angle = -Phaser.Math.DegToRad(deg);
-      const t = traceShot(this.grid, GEOM, this.cannonX, this.cannonY, angle);
+      const t = this.traceAt(angle);
       if (!t.cell) continue;
       this.grid.set(t.cell.row, t.cell.col, this.current);
       const size = this.grid.findCluster(t.cell.row, t.cell.col).length;

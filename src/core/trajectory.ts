@@ -1,5 +1,6 @@
 import { EMPTY, type Cell, type HexGrid } from './HexGrid';
 import { cellX, cellY, type BoardGeom } from './geometry';
+import type { Rect } from './walls';
 
 export interface Point {
   x: number;
@@ -12,11 +13,20 @@ export interface ShotTrace {
   /** Cellule où la boule se fixe, ou null si aucune place valide. */
   cell: Cell | null;
   bounces: number;
+  /** Vrai si la boule, renvoyée vers le bas par un mur, est sortie du plateau. */
+  lost: boolean;
+}
+
+export interface TraceOptions {
+  /** Murs incassables (rectangles en unités de jeu). */
+  walls?: Rect[];
+  /** Ordonnée sous laquelle une boule qui redescend est perdue. */
+  floorY?: number;
 }
 
 const STEP = 4;
 const HIT_FACTOR = 0.88;
-const MAX_BOUNCES = 16;
+const MAX_BOUNCES = 24;
 
 function collides(grid: HexGrid, g: BoardGeom, x: number, y: number, hit2: number): boolean {
   const row = Math.round((y - g.top - g.r) / g.rowH);
@@ -45,7 +55,7 @@ export function snapCell(grid: HexGrid, g: BoardGeom, x: number, y: number): Cel
       const off = r & 1 ? g.r : 0;
       const baseCol = Math.round((x - g.left - g.r - off) / (2 * g.r));
       for (let c = baseCol - radius; c <= baseCol + radius; c++) {
-        if (!grid.inBounds(r, c) || grid.get(r, c) !== EMPTY) continue;
+        if (!grid.canHold(r, c)) continue;
         if (r !== 0 && !grid.hasOccupiedNeighbor(r, c)) continue;
         const dx = cellX(g, r, c) - x;
         const dy = cellY(g, r) - y;
@@ -62,24 +72,36 @@ export function snapCell(grid: HexGrid, g: BoardGeom, x: number, y: number): Cel
 }
 
 /**
- * Simule un tir : rebonds sur les parois, collision avec les boules ou le
- * plafond. La même fonction sert à la visée et au tir réel, ce qui garantit
- * que la boule atterrit exactement là où la trajectoire l'annonce.
+ * Simule un tir : rebonds sur les parois et sur les murs, collision avec les
+ * boules ou le plafond. La même fonction sert à la visée et au tir réel, ce
+ * qui garantit que la boule atterrit exactement là où la trajectoire l'annonce.
  */
-export function traceShot(grid: HexGrid, g: BoardGeom, ox: number, oy: number, angle: number): ShotTrace {
+export function traceShot(
+  grid: HexGrid,
+  g: BoardGeom,
+  ox: number,
+  oy: number,
+  angle: number,
+  options: TraceOptions = {},
+): ShotTrace {
+  const walls = options.walls ?? [];
+  const floorY = options.floorY ?? oy + g.r * 4;
   let x = ox;
   let y = oy;
   let dx = Math.cos(angle);
-  const dy = Math.sin(angle);
+  let dy = Math.sin(angle);
   const minX = g.left + g.r;
   const maxX = g.left + g.width - g.r;
   const topY = g.top + g.r;
   const hit2 = (g.r * 2 * HIT_FACTOR) ** 2;
   const points: Point[] = [{ x, y }];
   let bounces = 0;
+  let lost = false;
 
   if (dy < 0) {
-    for (let i = 0; i < 6000; i++) {
+    for (let i = 0; i < 9000; i++) {
+      const px = x;
+      const py = y;
       x += dx * STEP;
       y += dy * STEP;
       if (x < minX) {
@@ -93,14 +115,51 @@ export function traceShot(grid: HexGrid, g: BoardGeom, ox: number, oy: number, a
         points.push({ x: maxX, y });
         bounces++;
       }
-      if (y <= topY) {
+
+      // Murs : collision cercle / rectangle. La position précédente, toujours
+      // hors de tous les murs, indique ce qui est touché : une face (rebond
+      // miroir) ou un angle (rebond selon la direction angle → centre).
+      for (const w of walls) {
+        const nx = Math.max(w.x, Math.min(x, w.x + w.w));
+        const ny = Math.max(w.y, Math.min(y, w.y + w.h));
+        if ((x - nx) ** 2 + (y - ny) ** 2 >= g.r * g.r) continue;
+        const besideX = px < w.x || px > w.x + w.w;
+        const besideY = py < w.y || py > w.y + w.h;
+        if (besideX && !besideY) dx = -dx;
+        else if (besideY && !besideX) dy = -dy;
+        else {
+          const cx = px < w.x ? w.x : w.x + w.w;
+          const cy = py < w.y ? w.y : w.y + w.h;
+          let ux = px - cx;
+          let uy = py - cy;
+          const len = Math.hypot(ux, uy) || 1;
+          ux /= len;
+          uy /= len;
+          const dot = dx * ux + dy * uy;
+          if (dot < 0) {
+            dx -= 2 * dot * ux;
+            dy -= 2 * dot * uy;
+          }
+        }
+        x = px;
+        y = py;
+        points.push({ x, y });
+        bounces++;
+        break;
+      }
+
+      if (dy < 0 && y <= topY) {
         y = topY;
         break;
       }
       if (collides(grid, g, x, y, hit2)) break;
+      if (dy > 0 && y >= floorY) {
+        lost = true;
+        break;
+      }
       if (bounces > MAX_BOUNCES) break;
     }
   }
   points.push({ x, y });
-  return { points, cell: snapCell(grid, g, x, y), bounces };
+  return { points, cell: lost ? null : snapCell(grid, g, x, y), bounces, lost };
 }

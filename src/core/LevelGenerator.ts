@@ -1,7 +1,9 @@
 import { COLS, GRID_ROWS } from '../config/gameConfig';
 import type { LevelDef, Pattern } from '../data/levels';
 import { EMPTY, HexGrid } from './HexGrid';
+import { GEOM } from './geometry';
 import { mulberry32 } from './rng';
+import { blockCells, wallRect } from './walls';
 
 type Mask = (row: number, col: number, rows: number, cols: number) => boolean;
 
@@ -37,12 +39,14 @@ const MASKS: Record<Pattern, Mask> = {
 /** Construit la grille initiale d'un niveau à partir de sa configuration. */
 export function buildGrid(level: LevelDef, cols = COLS, rows = GRID_ROWS): HexGrid {
   const grid = new HexGrid(cols, rows);
+  // Les cellules recouvertes par un mur ne reçoivent jamais de boule.
+  blockCells(grid, GEOM, (level.walls ?? []).map((w) => wallRect(GEOM, w)));
 
   if (level.layout) {
     level.layout.forEach((line, r) => {
       for (let c = 0; c < cols && c < line.length; c++) {
         const ch = line[c];
-        if (ch >= '0' && ch <= '9') grid.set(r, c, Number(ch) % level.colors);
+        if (ch >= '0' && ch <= '9' && grid.canHold(r, c)) grid.set(r, c, Number(ch) % level.colors);
       }
     });
   } else {
@@ -54,7 +58,7 @@ export function buildGrid(level: LevelDef, cols = COLS, rows = GRID_ROWS): HexGr
       for (let c = 0; c < cols; c++) {
         let color = Math.floor(rng() * level.colors);
         const copy = rng() < 0.5;
-        if (!mask(r, c, level.rows, cols)) continue;
+        if (!mask(r, c, level.rows, cols) || !grid.canHold(r, c)) continue;
         if (copy) {
           const placed = grid.neighbors(r, c).filter((n) => grid.get(n.row, n.col) !== EMPTY);
           if (placed.length) {

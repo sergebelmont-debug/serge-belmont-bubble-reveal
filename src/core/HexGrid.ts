@@ -18,9 +18,23 @@ const ODD_OFFSETS = [
 
 export class HexGrid {
   readonly cells: Int8Array;
+  /** Cellules recouvertes par un mur : aucune boule ne peut s'y fixer. */
+  readonly blocked: Uint8Array;
 
   constructor(readonly cols: number, readonly rows: number) {
     this.cells = new Int8Array(cols * rows).fill(EMPTY);
+    this.blocked = new Uint8Array(cols * rows);
+  }
+
+  block(row: number, col: number): void {
+    if (this.inBounds(row, col)) this.blocked[row * this.cols + col] = 1;
+  }
+
+  /** Vrai si une boule peut être posée sur cette cellule (libre et sans mur). */
+  canHold(row: number, col: number): boolean {
+    if (!this.inBounds(row, col)) return false;
+    const i = row * this.cols + col;
+    return this.cells[i] === EMPTY && !this.blocked[i];
   }
 
   inBounds(row: number, col: number): boolean {

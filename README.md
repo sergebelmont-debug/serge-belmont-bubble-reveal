@@ -51,6 +51,22 @@ la liste, et la carte des niveaux s'allonge toute seule.
 Une disposition manuelle est possible avec `layout` (une chaîne par rangée,
 un chiffre par boule, `.` pour un vide).
 
+### Ajouter des murs
+
+Les murs sont des barres incassables sur lesquelles les boules rebondissent.
+Ils se déclarent dans le niveau, en unités de grille (le plateau fait 11,5
+largeurs de boule) :
+
+```ts
+walls: [
+  { type: 'h', row: 11, col: 3, len: 5.5 },  // barre horizontale sur la rangée 11
+  { type: 'v', col: 5.75, row: 0, len: 8 },  // cloison verticale depuis le plafond
+],
+```
+
+Garder les murs au-dessus de la rangée 12,5. Une boule renvoyée vers le bas
+par un mur et qui sort du plateau est un tir perdu.
+
 ## Mettre en ligne (GitHub Pages)
 
 Le dépôt contient un déploiement automatique ([.github/workflows/deploy.yml](.github/workflows/deploy.yml)) :

@@ -12,7 +12,9 @@
  * Tant que `file` vaut null (ou que le fichier est introuvable), le jeu
  * affiche automatiquement une photo provisoire générée.
  */
-export type Difficulty = 'facile' | 'moyen' | 'difficile' | 'expert';
+import type { WallDef } from '../core/walls';
+
+export type Difficulty ='facile' | 'moyen' | 'difficile' | 'expert';
 
 /** Forme de la disposition initiale des boules. */
 export type Pattern = 'plein' | 'pyramide' | 'sablier' | 'colonnes' | 'vagues' | 'arches';
@@ -43,6 +45,8 @@ export interface LevelDef {
   seed: number;
   /** Disposition manuelle facultative : une chaîne par rangée, chiffre = couleur, '.' = vide. */
   layout?: string[];
+  /** Murs incassables sur lesquels les boules rebondissent (voir core/walls.ts). */
+  walls?: WallDef[];
   objective: {
     /** Pourcentage de la photo à révéler pour gagner. */
     revealPercent: number;
@@ -59,6 +63,7 @@ export interface LevelDef {
 type LevelInput = Pick<LevelDef, 'title' | 'difficulty' | 'shots' | 'colors' | 'rows' | 'seed'> & {
   pattern?: Pattern;
   layout?: string[];
+  walls?: WallDef[];
   /** Pourcentage de la photo à révéler pour gagner. */
   target: number;
   /** Nom du fichier photo (dans public/assets/photos/levels/), ou rien tant qu'elle n'est pas fournie. */
@@ -92,6 +97,7 @@ function defineLevels(list: LevelInput[]): LevelDef[] {
     pattern: l.pattern,
     seed: l.seed,
     layout: l.layout,
+    walls: l.walls,
     objective: { revealPercent: l.target },
     reveal: { radius: l.revealRadius ?? 1, strength: l.revealStrength ?? 1 },
   }));
@@ -103,21 +109,85 @@ function defineLevels(list: LevelInput[]): LevelDef[] {
  */
 /*
  * Équilibrage : le nombre de tirs vient de parties simulées par un joueur
- * automatique (3 parties par niveau), avec une marge de 30 à 70 % pour un
- * joueur humain. Après tout changement de couleurs, rangées ou objectif,
- * rejouer le niveau pour vérifier qu'il reste gagnable.
+ * automatique (3 parties par niveau). La marge laissée au joueur humain se
+ * resserre avec les niveaux : environ +85 % au début, +30 à +50 % à la fin.
+ * Après tout changement de couleurs, rangées, murs ou objectif, rejouer le
+ * niveau pour vérifier qu'il reste gagnable.
  */
 export const LEVELS: LevelDef[] = defineLevels([
   { title: 'Première rencontre', difficulty: 'facile', pattern: 'plein', colors: 4, rows: 6, shots: 24, target: 55, seed: 101 },
   { title: 'Sous les projecteurs', difficulty: 'facile', pattern: 'pyramide', colors: 4, rows: 8, shots: 26, target: 50, seed: 202 },
-  { title: 'Le regard', difficulty: 'facile', pattern: 'plein', colors: 5, rows: 7, shots: 26, target: 60, seed: 303 },
-  { title: 'En coulisses', difficulty: 'facile', pattern: 'colonnes', colors: 4, rows: 9, shots: 26, target: 60, seed: 404 },
-  { title: 'La première note', difficulty: 'moyen', pattern: 'vagues', colors: 5, rows: 9, shots: 32, target: 58, seed: 505 },
-  { title: 'Le micro', difficulty: 'moyen', pattern: 'sablier', colors: 5, rows: 10, shots: 24, target: 62, seed: 606 },
-  { title: 'Soir de concert', difficulty: 'moyen', pattern: 'arches', colors: 5, rows: 9, shots: 36, target: 62, seed: 707 },
-  { title: 'Le sourire', difficulty: 'moyen', pattern: 'plein', colors: 5, rows: 9, shots: 28, target: 68, seed: 808 },
-  { title: 'Lumière dorée', difficulty: 'difficile', pattern: 'pyramide', colors: 6, rows: 10, shots: 40, target: 65, seed: 909 },
-  { title: 'Entre deux chansons', difficulty: 'difficile', pattern: 'colonnes', colors: 5, rows: 10, shots: 40, target: 68, seed: 1010 },
-  { title: 'Le salut au public', difficulty: 'difficile', pattern: 'vagues', colors: 6, rows: 10, shots: 30, target: 70, seed: 1111 },
-  { title: 'Rappel', difficulty: 'difficile', pattern: 'plein', colors: 6, rows: 10, shots: 34, target: 72, seed: 1212 },
+  // Niveau 3 : premier mur, un simple bouclier central à contourner.
+  {
+    title: 'Le regard', difficulty: 'facile', pattern: 'plein', colors: 5, rows: 7, shots: 24, target: 60, seed: 303,
+    walls: [{ type: 'h', row: 9, col: 4.25, len: 3 }],
+  },
+  // Niveau 4 : deux boucliers, trois couloirs de tir.
+  {
+    title: 'En coulisses', difficulty: 'facile', pattern: 'colonnes', colors: 4, rows: 9, shots: 26, target: 60, seed: 404,
+    walls: [
+      { type: 'h', row: 11, col: 1.25, len: 2.5 },
+      { type: 'h', row: 11, col: 7.75, len: 2.5 },
+    ],
+  },
+  // Niveau 5 : long bouclier central, il faut passer par les côtés.
+  {
+    title: 'La première note', difficulty: 'moyen', pattern: 'vagues', colors: 5, rows: 9, shots: 24, target: 58, seed: 505,
+    walls: [{ type: 'h', row: 11, col: 3, len: 5.5 }],
+  },
+  // Niveau 6 : bouclier en T sous le sablier, il faut l'attaquer par les flancs.
+  {
+    title: 'Le micro', difficulty: 'moyen', pattern: 'sablier', colors: 5, rows: 9, shots: 26, target: 62, seed: 606,
+    walls: [
+      { type: 'h', row: 11, col: 3.5, len: 4.5 },
+      { type: 'v', col: 5.75, row: 11, len: 1.5 },
+    ],
+  },
+  // Niveau 7 : grand bouclier, deux passages étroits le long des bords.
+  {
+    title: 'Soir de concert', difficulty: 'moyen', pattern: 'arches', colors: 5, rows: 9, shots: 40, target: 55, seed: 707,
+    walls: [{ type: 'h', row: 11, col: 2.25, len: 7 }],
+  },
+  // Niveau 8 : une cloison coupe le plateau en deux chambres.
+  {
+    title: 'Le sourire', difficulty: 'moyen', pattern: 'plein', colors: 5, rows: 9, shots: 34, target: 58, seed: 808,
+    walls: [
+      { type: 'v', col: 5.75, row: 0, len: 9.5 },
+      { type: 'h', row: 11, col: 4.25, len: 3 },
+    ],
+  },
+  // Niveau 9 : boucliers en escalier, le tir doit zigzaguer.
+  {
+    title: 'Lumière dorée', difficulty: 'difficile', pattern: 'pyramide', colors: 5, rows: 9, shots: 32, target: 55, seed: 909,
+    walls: [
+      { type: 'h', row: 10.5, col: 0, len: 4.5 },
+      { type: 'h', row: 12, col: 7, len: 4.5 },
+    ],
+  },
+  // Niveau 10 : trois boucliers, deux portes étroites.
+  {
+    title: 'Entre deux chansons', difficulty: 'difficile', pattern: 'colonnes', colors: 5, rows: 9, shots: 34, target: 66, seed: 1010,
+    walls: [
+      { type: 'h', row: 11, col: 0, len: 2.5 },
+      { type: 'h', row: 11, col: 4.5, len: 2.5 },
+      { type: 'h', row: 11, col: 9, len: 2.5 },
+    ],
+  },
+  // Niveau 11 : deux chambres, chacune derrière sa porte.
+  {
+    title: 'Le salut au public', difficulty: 'difficile', pattern: 'vagues', colors: 6, rows: 9, shots: 46, target: 66, seed: 1111,
+    walls: [
+      { type: 'v', col: 5.75, row: 0, len: 8 },
+      { type: 'h', row: 11, col: 0, len: 3.5 },
+      { type: 'h', row: 11, col: 8, len: 3.5 },
+    ],
+  },
+  // Niveau 12 : forteresse — cloison centrale et bouclier presque complet.
+  {
+    title: 'Rappel', difficulty: 'difficile', pattern: 'plein', colors: 6, rows: 9, shots: 36, target: 64, seed: 1212,
+    walls: [
+      { type: 'v', col: 5.75, row: 0, len: 5 },
+      { type: 'h', row: 11, col: 2.25, len: 7 },
+    ],
+  },
 ]);
