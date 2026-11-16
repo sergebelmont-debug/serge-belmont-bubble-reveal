@@ -109,85 +109,117 @@ function defineLevels(list: LevelInput[]): LevelDef[] {
  */
 /*
  * Équilibrage : le nombre de tirs vient de parties simulées par un joueur
- * automatique (3 parties par niveau). La marge laissée au joueur humain se
- * resserre avec les niveaux : environ +85 % au début, +30 à +50 % à la fin.
+ * automatique (3 à 6 parties par niveau) : il est fixé un peu au-dessus de
+ * la partie la plus longue observée.
  * Après tout changement de couleurs, rangées, murs ou objectif, rejouer le
  * niveau pour vérifier qu'il reste gagnable.
  */
 export const LEVELS: LevelDef[] = defineLevels([
   { title: 'Première rencontre', difficulty: 'facile', pattern: 'plein', colors: 4, rows: 6, shots: 24, target: 55, seed: 101 },
   { title: 'Sous les projecteurs', difficulty: 'facile', pattern: 'pyramide', colors: 4, rows: 8, shots: 26, target: 50, seed: 202 },
-  // Niveau 3 : premier mur, un simple bouclier central à contourner.
+  /*
+   * Les murs sont tous placés dans la partie haute, au milieu des boules,
+   * jamais entre le canon et le plateau. Leur nombre augmente avec le niveau :
+   * 1 mur au niveau 3, jusqu'à 8 au niveau 12.
+   */
+  // Niveau 3 — 1 mur : un pilier central descend du plafond.
   {
-    title: 'Le regard', difficulty: 'facile', pattern: 'plein', colors: 5, rows: 7, shots: 24, target: 60, seed: 303,
-    walls: [{ type: 'h', row: 9, col: 4.25, len: 3 }],
+    title: 'Le regard', difficulty: 'facile', pattern: 'plein', colors: 5, rows: 7, shots: 26, target: 60, seed: 303,
+    walls: [{ type: 'v', col: 5.75, row: 0, len: 3 }],
   },
-  // Niveau 4 : deux boucliers, trois couloirs de tir.
+  // Niveau 4 — 2 murs : deux piliers découpent trois alcôves.
   {
-    title: 'En coulisses', difficulty: 'facile', pattern: 'colonnes', colors: 4, rows: 9, shots: 26, target: 60, seed: 404,
+    title: 'En coulisses', difficulty: 'facile', pattern: 'plein', colors: 4, rows: 8, shots: 28, target: 52, seed: 404,
     walls: [
-      { type: 'h', row: 11, col: 1.25, len: 2.5 },
-      { type: 'h', row: 11, col: 7.75, len: 2.5 },
+      { type: 'v', col: 3, row: 0, len: 3.5 },
+      { type: 'v', col: 8.5, row: 0, len: 3.5 },
     ],
   },
-  // Niveau 5 : long bouclier central, il faut passer par les côtés.
+  // Niveau 5 — 2 murs : un T suspendu au plafond, des boules posées sur ses bras.
   {
-    title: 'La première note', difficulty: 'moyen', pattern: 'vagues', colors: 5, rows: 9, shots: 24, target: 58, seed: 505,
-    walls: [{ type: 'h', row: 11, col: 3, len: 5.5 }],
-  },
-  // Niveau 6 : bouclier en T sous le sablier, il faut l'attaquer par les flancs.
-  {
-    title: 'Le micro', difficulty: 'moyen', pattern: 'sablier', colors: 5, rows: 9, shots: 26, target: 62, seed: 606,
+    title: 'La première note', difficulty: 'moyen', pattern: 'plein', colors: 5, rows: 8, shots: 22, target: 58, seed: 505,
     walls: [
-      { type: 'h', row: 11, col: 3.5, len: 4.5 },
-      { type: 'v', col: 5.75, row: 11, len: 1.5 },
+      { type: 'v', col: 5.75, row: 0, len: 4.35 },
+      { type: 'h', row: 4, col: 4.25, len: 3 },
     ],
   },
-  // Niveau 7 : grand bouclier, deux passages étroits le long des bords.
+  // Niveau 6 — 3 murs : deux corniches et un pilier flottant.
   {
-    title: 'Soir de concert', difficulty: 'moyen', pattern: 'arches', colors: 5, rows: 9, shots: 40, target: 55, seed: 707,
-    walls: [{ type: 'h', row: 11, col: 2.25, len: 7 }],
-  },
-  // Niveau 8 : une cloison coupe le plateau en deux chambres.
-  {
-    title: 'Le sourire', difficulty: 'moyen', pattern: 'plein', colors: 5, rows: 9, shots: 34, target: 58, seed: 808,
+    title: 'Le micro', difficulty: 'moyen', pattern: 'plein', colors: 5, rows: 8, shots: 34, target: 60, seed: 606,
     walls: [
-      { type: 'v', col: 5.75, row: 0, len: 9.5 },
-      { type: 'h', row: 11, col: 4.25, len: 3 },
+      { type: 'h', row: 3, col: 1, len: 2.5 },
+      { type: 'h', row: 3, col: 8, len: 2.5 },
+      { type: 'v', col: 5.75, row: 2, len: 4 },
     ],
   },
-  // Niveau 9 : boucliers en escalier, le tir doit zigzaguer.
+  // Niveau 7 — 4 murs : une niche en C ouverte vers le bord gauche, et un pilier.
   {
-    title: 'Lumière dorée', difficulty: 'difficile', pattern: 'pyramide', colors: 5, rows: 9, shots: 32, target: 55, seed: 909,
+    title: 'Soir de concert', difficulty: 'moyen', pattern: 'plein', colors: 5, rows: 9, shots: 36, target: 60, seed: 707,
     walls: [
-      { type: 'h', row: 10.5, col: 0, len: 4.5 },
-      { type: 'h', row: 12, col: 7, len: 4.5 },
+      { type: 'h', row: 2, col: 2.1, len: 2.5 },
+      { type: 'h', row: 5, col: 2.1, len: 2.5 },
+      { type: 'v', col: 4.5, row: 2.25, len: 3.2 },
+      { type: 'v', col: 8.5, row: 0, len: 3 },
     ],
   },
-  // Niveau 10 : trois boucliers, deux portes étroites.
+  // Niveau 8 — 4 murs : une croix centrale et deux piliers.
   {
-    title: 'Entre deux chansons', difficulty: 'difficile', pattern: 'colonnes', colors: 5, rows: 9, shots: 34, target: 66, seed: 1010,
+    title: 'Le sourire', difficulty: 'moyen', pattern: 'plein', colors: 5, rows: 9, shots: 26, target: 60, seed: 808,
     walls: [
-      { type: 'h', row: 11, col: 0, len: 2.5 },
-      { type: 'h', row: 11, col: 4.5, len: 2.5 },
-      { type: 'h', row: 11, col: 9, len: 2.5 },
+      { type: 'h', row: 4, col: 4, len: 3.5 },
+      { type: 'v', col: 5.75, row: 2.2, len: 3.6 },
+      { type: 'v', col: 2, row: 0, len: 2.5 },
+      { type: 'v', col: 9.5, row: 0, len: 2.5 },
     ],
   },
-  // Niveau 11 : deux chambres, chacune derrière sa porte.
+  // Niveau 9 — 5 murs : des corniches en escalier.
   {
-    title: 'Le salut au public', difficulty: 'difficile', pattern: 'vagues', colors: 6, rows: 9, shots: 46, target: 66, seed: 1111,
+    title: 'Lumière dorée', difficulty: 'difficile', pattern: 'plein', colors: 5, rows: 9, shots: 24, target: 60, seed: 909,
     walls: [
-      { type: 'v', col: 5.75, row: 0, len: 8 },
-      { type: 'h', row: 11, col: 0, len: 3.5 },
-      { type: 'h', row: 11, col: 8, len: 3.5 },
+      { type: 'h', row: 2, col: 0.5, len: 2 },
+      { type: 'h', row: 4, col: 3, len: 2 },
+      { type: 'h', row: 6, col: 5.5, len: 2 },
+      { type: 'h', row: 4, col: 8, len: 2 },
+      { type: 'v', col: 9.75, row: 0, len: 2.5 },
     ],
   },
-  // Niveau 12 : forteresse — cloison centrale et bouclier presque complet.
+  // Niveau 10 — 6 murs : deux niches en C, ouvertes chacune vers son bord.
   {
-    title: 'Rappel', difficulty: 'difficile', pattern: 'plein', colors: 6, rows: 9, shots: 36, target: 64, seed: 1212,
+    title: 'Entre deux chansons', difficulty: 'difficile', pattern: 'plein', colors: 5, rows: 9, shots: 44, target: 62, seed: 1010,
     walls: [
-      { type: 'v', col: 5.75, row: 0, len: 5 },
-      { type: 'h', row: 11, col: 2.25, len: 7 },
+      { type: 'h', row: 2, col: 1.8, len: 2.6 },
+      { type: 'h', row: 5, col: 1.8, len: 2.6 },
+      { type: 'v', col: 4.3, row: 2.25, len: 3.2 },
+      { type: 'h', row: 2, col: 7.1, len: 2.6 },
+      { type: 'h', row: 5, col: 7.1, len: 2.6 },
+      { type: 'v', col: 7.2, row: 2.25, len: 3.2 },
+    ],
+  },
+  // Niveau 11 — 7 murs : trois piliers et quatre corniches en quinconce.
+  {
+    title: 'Le salut au public', difficulty: 'difficile', pattern: 'plein', colors: 5, rows: 9, shots: 40, target: 62, seed: 1111,
+    walls: [
+      { type: 'v', col: 2.9, row: 0, len: 2 },
+      { type: 'v', col: 5.75, row: 0, len: 3 },
+      { type: 'v', col: 8.6, row: 0, len: 2 },
+      { type: 'h', row: 4, col: 0.8, len: 1.5 },
+      { type: 'h', row: 4, col: 9.2, len: 1.5 },
+      { type: 'h', row: 6, col: 3.4, len: 1.5 },
+      { type: 'h', row: 6, col: 6.6, len: 1.5 },
+    ],
+  },
+  // Niveau 12 — 8 murs : une chambre forte centrale, des piliers et des corniches.
+  {
+    title: 'Rappel', difficulty: 'difficile', pattern: 'plein', colors: 6, rows: 9, shots: 38, target: 64, seed: 1212,
+    walls: [
+      { type: 'h', row: 2, col: 4.2, len: 3.1 },
+      { type: 'v', col: 4.35, row: 2.25, len: 2.3 },
+      { type: 'v', col: 7.15, row: 2.25, len: 2.3 },
+      { type: 'v', col: 1.5, row: 0, len: 2 },
+      { type: 'v', col: 10, row: 0, len: 2 },
+      { type: 'h', row: 5, col: 0.8, len: 1.5 },
+      { type: 'h', row: 5, col: 9.2, len: 1.5 },
+      { type: 'h', row: 7, col: 5, len: 1.5 },
     ],
   },
 ]);

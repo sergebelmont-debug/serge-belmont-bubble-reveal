@@ -59,12 +59,13 @@ largeurs de boule) :
 
 ```ts
 walls: [
-  { type: 'h', row: 11, col: 3, len: 5.5 },  // barre horizontale sur la rangée 11
+  { type: 'h', row: 4, col: 4.25, len: 3 },  // corniche horizontale sur la rangée 4
   { type: 'v', col: 5.75, row: 0, len: 8 },  // cloison verticale depuis le plafond
 ],
 ```
 
-Garder les murs au-dessus de la rangée 12,5. Une boule renvoyée vers le bas
+Placer les murs dans la partie haute, au milieu des boules (rangées 0 à 8),
+jamais entre le canon et le plateau. Une boule renvoyée vers le bas
 par un mur et qui sort du plateau est un tir perdu.
 
 ## Mettre en ligne (GitHub Pages)

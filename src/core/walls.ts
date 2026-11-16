@@ -7,16 +7,16 @@ import { cellX, cellY, type BoardGeom } from './geometry';
  * Barres fixes sur lesquelles les boules tirées rebondissent, comme sur les
  * bords de l'écran. Elles se décrivent en unités de grille, faciles à régler :
  *
- *   { type: 'h', row: 11, col: 3, len: 5.5 }
- *     barre horizontale centrée sur la rangée 11, qui commence à 3 largeurs
- *     de boule du bord gauche et mesure 5,5 largeurs de boule.
+ *   { type: 'h', row: 4, col: 4.25, len: 3 }
+ *     corniche horizontale centrée sur la rangée 4, qui commence à 4,25
+ *     largeurs de boule du bord gauche et mesure 3 largeurs de boule.
  *
  *   { type: 'v', col: 5.75, row: 0, len: 8 }
  *     barre verticale placée à 5,75 largeurs de boule du bord gauche, qui part
  *     du plafond (rangée 0) et descend sur 8 rangées.
  *
- * Le plateau fait 11,5 largeurs de boule. Garder les murs au-dessus de la
- * rangée 12,5 pour qu'ils restent visibles sur les écrans courts.
+ * Le plateau fait 11,5 largeurs de boule. Les murs se placent dans la partie
+ * haute, au milieu des boules (rangées 0 à 8), jamais devant le canon.
  */
 export interface WallDef {
   type: 'h' | 'v';

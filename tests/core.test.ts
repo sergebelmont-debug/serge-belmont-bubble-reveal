@@ -127,12 +127,12 @@ describe('murs', () => {
     if (t.cell) expect(g.canHold(t.cell.row, t.cell.col)).toBe(true);
   });
 
-  it('les murs des niveaux restent au-dessus de la rangée 12,5 et aucune boule ne les chevauche', () => {
+  it('les murs des niveaux restent dans la partie haute et aucune boule ne les chevauche', () => {
     for (const level of LEVELS) {
       const g = buildGrid(level);
       for (const w of level.walls ?? []) {
         const bottom = w.type === 'h' ? w.row : w.row + w.len;
-        expect(bottom, level.id).toBeLessThanOrEqual(12.5);
+        expect(bottom, level.id).toBeLessThanOrEqual(8.5);
       }
       for (const cell of g.occupied()) expect(g.blocked[cell.row * g.cols + cell.col], level.id).toBe(0);
     }
