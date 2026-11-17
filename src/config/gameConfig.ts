@@ -25,6 +25,9 @@ export const SCORE_POP = 10;
 export const SCORE_DROP = 20;
 export const SCORE_SHOT_LEFT = 150;
 
+/** Bord supérieur de la photographie (elle occupe toute la largeur, sans recadrage). */
+export const PHOTO_TOP = 112;
+
 export const DEPTH = {
   photo: 0,
   fog: 10,

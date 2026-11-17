@@ -3,7 +3,7 @@
 Bubble Shooter mobile (web) : chaque combinaison dissipe un brouillard et révèle
 progressivement une photographie de Serge Belmont.
 
-**État actuel : v0.2** — 12 niveaux, carte de progression, photos provisoires.
+**État actuel : v0.2** — 12 niveaux, carte de progression, 12 photographies.
 Voir [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) pour l'architecture et la feuille de route.
 
 ## Lancer le jeu sur son ordinateur
@@ -28,16 +28,16 @@ permet de tester depuis un smartphone connecté au même Wi-Fi.
 ## Ajouter une photographie
 
 1. Déposer la photo haute résolution dans `public/assets/photos/levels/`
-   (JPEG ou WebP, format vertical, 1080 × 1920 px minimum conseillé).
-2. Déposer sa miniature dans `public/assets/photos/thumbnails/` (environ 360 px de large).
-3. Dans [src/data/levels.ts](src/data/levels.ts), renseigner le **nom du fichier** du niveau voulu :
+   (JPEG ou WebP, format carré 1:1, 1080 × 1080 px minimum conseillé).
+2. Dans [src/data/levels.ts](src/data/levels.ts), renseigner le **nom du fichier** du niveau voulu :
 
 ```ts
-photo: { file: 'serge-concert-01.jpg', thumbnail: 'serge-concert-01.jpg' },
+photo: 'ma-photo.webp',
 ```
 
-Rien d'autre à modifier : le cadrage plein écran est automatique. Si le visage
-est coupé sur certains écrans, ajuster `focusX` / `focusY` (0 à 1).
+Rien d'autre à modifier : la photo est affichée en entier sur toute la largeur,
+sans recadrage ni déformation, et le pourcentage révélé se mesure sur elle seule.
+Le reste de l'écran reçoit un fond flou tiré de la même image.
 Tant que `file` vaut `null` ou que le fichier est introuvable, une photo
 provisoire est affichée à la place.
 

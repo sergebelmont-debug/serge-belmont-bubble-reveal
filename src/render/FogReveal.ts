@@ -76,11 +76,13 @@ function buildNoise(seed: number): Uint8Array {
 
 export class FogReveal {
   readonly image: Phaser.GameObjects.Image;
-  /** Fraction de la photo actuellement visible (0–1). */
+  /** Fraction de la photographie actuellement visible (0–1). */
   fraction = 0;
 
   private readonly fw = FIELD_W;
   private readonly fh: number;
+  private readonly zoneY0: number;
+  private readonly zoneY1: number;
   private readonly k: number;
   private readonly field: Float32Array;
   private readonly blobs: Blob[] = [];
@@ -94,9 +96,15 @@ export class FogReveal {
   private time = 0;
   private frame = 0;
 
-  constructor(private scene: Phaser.Scene, viewH: number) {
+  /**
+   * `zone` : bande verticale (unités de jeu) occupée par la photographie.
+   * Le pourcentage révélé ne se mesure que dans cette bande.
+   */
+  constructor(private scene: Phaser.Scene, viewH: number, zone: { y: number; h: number }) {
     this.k = this.fw / DESIGN_W;
     this.fh = Math.ceil(viewH * this.k);
+    this.zoneY0 = Math.max(0, Math.round(zone.y * this.k));
+    this.zoneY1 = Math.min(this.fh, Math.round((zone.y + zone.h) * this.k));
     this.field = new Float32Array(this.fw * this.fh);
     this.noise = buildNoise(20261114);
 
@@ -253,6 +261,7 @@ export class FogReveal {
     let visible = 0;
 
     for (let y = 0; y < fh; y++) {
+      const counted = y >= this.zoneY0 && y < this.zoneY1;
       const ny1 = ((y + oy1) & 255) << 8;
       const ny2 = ((y * 2 + 97) & 255) << 8;
       const row = y * fw;
@@ -271,12 +280,12 @@ export class FogReveal {
           const idx = t <= 0 ? 0 : t >= 1.2 ? 255 : (t * 212.5) | 0;
           alpha = alphaLUT[idx];
         }
-        visible += 255 - alpha;
+        if (counted) visible += 255 - alpha;
         px[row + x] = (alpha << 24) | colorLUT[n | 0];
       }
     }
 
-    this.fraction = visible / (255 * fw * fh);
+    this.fraction = visible / (255 * fw * Math.max(1, this.zoneY1 - this.zoneY0));
     this.tex.context.putImageData(this.img, 0, 0);
     this.tex.refresh();
   }

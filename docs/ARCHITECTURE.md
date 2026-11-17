@@ -39,7 +39,10 @@ communiquent que par le bus d'événements (`app/bus.ts`).
 
 ## La révélation photographique
 
-- La photo couvre **tout** le plateau (cadrage « cover », sans déformation).
+- La photo (carrée) est affichée **en entier** sur toute la largeur, sans
+  recadrage ni déformation ; le reste de l'écran reçoit un fond flou et
+  assombri tiré de la même image.
+- Le pourcentage révélé se mesure uniquement sur la zone de la photo.
 - Le brouillard est un champ de valeurs basse résolution (180 px de large)
   agrandi avec lissage : très léger pour un smartphone.
 - Chaque boule détruite lance une « bouffée » animée (dégradé radial qui
@@ -74,7 +77,6 @@ communiquent que par le bus d'événements (`app/bus.ts`).
 
 ## Limites connues du prototype
 
-- Les photos sont des images provisoires générées.
 - Le son se limite aux effets ; pas encore de musique ni de réglages de volume.
 - Testé dans un navigateur de bureau (format mobile simulé), pas encore sur
   de vrais téléphones ni dans le navigateur intégré de Facebook.

@@ -27,7 +27,7 @@ export function createPlaceholderPhoto(scene: Phaser.Scene, level: LevelDef): vo
   const key = photoTextureKey(level);
   if (scene.textures.exists(key)) return;
   const W = 900;
-  const H = 2000;
+  const H = 900;
   const tex = scene.textures.createCanvas(key, W, H)!;
   const ctx = tex.context;
   const rng = mulberry32(level.seed * 7 + 13);

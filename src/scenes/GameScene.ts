@@ -6,6 +6,7 @@ import {
   BUBBLE_COLORS,
   BUBBLE_R,
   CANNON_FROM_BOTTOM,
+  PHOTO_TOP,
   DEPTH,
   DESIGN_W,
   MIN_AIM_DEG,
@@ -86,7 +87,6 @@ export class GameScene extends Phaser.Scene {
   private nextY = 0;
   private bScale = 1;
   /** Sur les écrans hauts, les dissipations sont un peu plus larges (équité entre appareils). */
-  private hScale = 1;
 
   private aimAngle = -Math.PI / 2;
   private aiming = false;
@@ -165,7 +165,6 @@ export class GameScene extends Phaser.Scene {
     createGameTextures(this, view.scale);
     this.bScale = BUBBLE_SPRITE_SIZE / this.textures.get(bubbleKey(0)).getSourceImage().width;
 
-    this.hScale = Math.sqrt(this.viewH / 1280);
     this.time.timeScale = debugSpeed;
     this.tweens.timeScale = debugSpeed;
 
@@ -174,8 +173,8 @@ export class GameScene extends Phaser.Scene {
     this.nextX = this.cannonX - 178;
     this.nextY = this.cannonY + 44;
 
-    this.createPhoto();
-    this.fog = new FogReveal(this, this.viewH);
+    const zone = this.createPhoto();
+    this.fog = new FogReveal(this, this.viewH, zone);
     this.createEffects();
     this.createBoard();
     this.createCannon();
@@ -200,16 +199,51 @@ export class GameScene extends Phaser.Scene {
 
   // ───────────────────────────── Construction ─────────────────────────────
 
-  private createPhoto(): void {
+  /**
+   * Affiche la photographie entière, sur toute la largeur, sans recadrage ni
+   * déformation. Le reste de l'écran reçoit un fond flou et assombri tiré de
+   * la même image. Renvoie la bande verticale occupée par la photo.
+   */
+  private createPhoto(): { y: number; h: number } {
     const key = photoTextureKey(this.level);
     if (!this.textures.exists(key)) createPlaceholderPhoto(this, this.level);
-    const photo = this.add.image(0, 0, key).setOrigin(0, 0).setDepth(DEPTH.photo);
-    // Cadrage « cover » : la photo remplit tout le plateau, sans déformation.
-    const sc = Math.max(DESIGN_W / photo.width, this.viewH / photo.height);
-    const fx = this.level.photo.focusX ?? 0.5;
-    const fy = this.level.photo.focusY ?? 0.3;
+    const source = this.textures.get(key).getSourceImage() as HTMLImageElement | HTMLCanvasElement;
+
+    // Fond : la photo réduite à quelques pixels puis agrandie (flou doux), assombrie.
+    const backKey = `backdrop-${this.level.id}`;
+    if (!this.textures.exists(backKey)) {
+      const bw = 180;
+      const bh = Math.ceil((this.viewH / DESIGN_W) * bw);
+      const tiny = document.createElement('canvas');
+      tiny.width = tiny.height = 24;
+      const tctx = tiny.getContext('2d')!;
+      tctx.imageSmoothingQuality = 'high';
+      tctx.drawImage(source, 0, 0, 24, 24);
+      const tex = this.textures.createCanvas(backKey, bw, bh)!;
+      const ctx = tex.context;
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      const side = Math.max(bw, bh) * 1.15;
+      const fx = this.level.photo.focusX ?? 0.5;
+      const fy = this.level.photo.focusY ?? 0.5;
+      ctx.drawImage(tiny, -(side - bw) * fx, -(side - bh) * fy, side, side);
+      ctx.fillStyle = 'rgba(16, 9, 38, 0.58)';
+      ctx.fillRect(0, 0, bw, bh);
+      tex.refresh();
+    }
+    this.add.image(0, 0, backKey).setOrigin(0, 0).setDisplaySize(DESIGN_W, this.viewH).setDepth(DEPTH.photo);
+
+    const photo = this.add.image(0, PHOTO_TOP, key).setOrigin(0, 0).setDepth(DEPTH.photo);
+    const sc = Math.min(DESIGN_W / photo.width, (this.viewH - PHOTO_TOP) / photo.height);
     photo.setScale(sc);
-    photo.setPosition(-(photo.width * sc - DESIGN_W) * fx, -(photo.height * sc - this.viewH) * fy);
+    photo.x = (DESIGN_W - photo.width * sc) / 2;
+    const h = photo.height * sc;
+
+    // Fin liseré doré autour de la photo.
+    const frame = this.add.graphics().setDepth(DEPTH.photo);
+    frame.lineStyle(3, 0xffd66b, 0.75);
+    frame.strokeRect(photo.x + 1.5, PHOTO_TOP, photo.width * sc - 3, h);
+    return { y: PHOTO_TOP, h };
   }
 
   private createEffects(): void {
@@ -646,7 +680,7 @@ export class GameScene extends Phaser.Scene {
 
   private popCluster(cluster: Cell[], ox: number, oy: number): void {
     const n = cluster.length;
-    const radius = BUBBLE_R * (2.5 + 0.28 * Math.min(n, 10)) * this.level.reveal.radius * this.hScale;
+    const radius = BUBBLE_R * (2.5 + 0.28 * Math.min(n, 10)) * this.level.reveal.radius;
     const strength = this.level.reveal.strength;
     const sorted = cluster
       .map((c) => ({ c, x: cellX(GEOM, c.row, c.col), y: cellY(GEOM, c.row) }))
@@ -726,7 +760,7 @@ export class GameScene extends Phaser.Scene {
     const s = dt / 1000;
     const minX = GEOM.left + GEOM.r;
     const maxX = GEOM.left + GEOM.width - GEOM.r;
-    const rMul = this.level.reveal.radius * this.hScale;
+    const rMul = this.level.reveal.radius;
     for (let i = this.fallers.length - 1; i >= 0; i--) {
       const f = this.fallers[i];
       const sp = f.sprite;
