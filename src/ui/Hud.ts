@@ -3,6 +3,7 @@ import { sfx } from '../audio/Sfx';
 import { DESIGN_W } from '../config/gameConfig';
 import { LEVELS } from '../data/levels';
 import { loadSave, writeSave } from '../services/SaveService';
+import { collectedCount, renderCollection } from './Collection';
 import { renderMap, totalStars } from './LevelMap';
 
 /** Interface HTML : accueil, carte des niveaux, barre d'état, écrans de fin de niveau. */
@@ -26,6 +27,8 @@ export function initUi(actions: UiActions): void {
   const home = $('overlay-start');
   const map = $('screen-map');
   const end = $('overlay-end');
+  const collection = $('screen-collection');
+  const viewer = $('photo-viewer');
   const scoreEl = $('hud-score');
   const shotsPill = $('hud-shots').parentElement!;
   const soundBtn = $<HTMLButtonElement>('btn-sound');
@@ -33,7 +36,7 @@ export function initUi(actions: UiActions): void {
   let lastScore = 0;
 
   const hideAll = (): void => {
-    for (const el of [hud, home, map, end]) el.classList.add('hidden');
+    for (const el of [hud, home, map, end, collection, viewer]) el.classList.add('hidden');
   };
 
   const showHome = (): void => {
@@ -42,8 +45,34 @@ export function initUi(actions: UiActions): void {
     const stars = totalStars();
     $('home-progress').textContent =
       save.unlocked > 0 ? `★ ${stars} · Niveau ${Math.min(save.unlocked + 1, LEVELS.length)} sur ${LEVELS.length}` : '';
+    $('home-collection').textContent = `${collectedCount()} / ${LEVELS.length}`;
     home.classList.remove('hidden');
     actions.resume();
+  };
+
+  const showCollection = (): void => {
+    hideAll();
+    actions.pause();
+    const count = collectedCount();
+    $('collection-count').textContent = `${count} / ${LEVELS.length}`;
+    $('collection-fill').style.width = `${(count / LEVELS.length) * 100}%`;
+    $('collection-hint').textContent =
+      count === 0
+        ? 'Terminez un niveau pour obtenir sa photographie.'
+        : count === LEVELS.length
+          ? 'Collection complète. Bravo !'
+          : 'Terminez les niveaux pour obtenir les photographies grisées.';
+    renderCollection($('collection-grid'), {
+      onOpen: (url, caption) => {
+        sfx.click();
+        $<HTMLImageElement>('viewer-img').src = url;
+        $('viewer-caption').textContent = caption;
+        viewer.classList.remove('hidden');
+      },
+      onLocked: () => sfx.bounce(),
+    });
+    $('collection-scroll').scrollTop = 0;
+    collection.classList.remove('hidden');
   };
 
   const showMap = (): void => {
@@ -86,6 +115,19 @@ export function initUi(actions: UiActions): void {
     sfx.unlock();
     sfx.click();
     showMap();
+  });
+  $('btn-collection').addEventListener('click', () => {
+    sfx.unlock();
+    sfx.click();
+    showCollection();
+  });
+  $('btn-collection-home').addEventListener('click', () => {
+    sfx.click();
+    showHome();
+  });
+  viewer.addEventListener('click', () => {
+    sfx.click();
+    viewer.classList.add('hidden');
   });
   $('btn-map-home').addEventListener('click', () => {
     sfx.click();

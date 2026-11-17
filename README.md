@@ -1,4 +1,4 @@
-# Serge Belmont – Bubble Reveal
+# Bubble NostalgIA – Serge Belmont
 
 Bubble Shooter mobile (web) : chaque combinaison dissipe un brouillard et révèle
 progressivement une photographie de Serge Belmont.
@@ -82,3 +82,9 @@ Le jeu est alors accessible sur
 
 Aucun pour le moment. Le classement communautaire et la sauvegarde en ligne
 (prévus avec Supabase) nécessiteront la création d'un projet Supabase.
+
+## Collection
+
+L'écran « Collection » (menu d'accueil) affiche les photos des niveaux terminés ;
+les autres sont grisées. Après l'ajout ou le remplacement d'une photo, lancer
+`npm run thumbs` pour régénérer les miniatures (`public/assets/photos/thumbnails/`).

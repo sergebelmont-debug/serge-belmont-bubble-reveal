@@ -6,11 +6,11 @@
       name="viewport"
       content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#140c36" />
+    <meta name="theme-color" content="#1d0b10" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="description" content="Serge Belmont – Bubble Reveal : éclatez les boules, dissipez le brouillard et révélez les photographies." />
-    <title>Serge Belmont – Bubble Reveal</title>
+    <meta name="description" content="Bubble NostalgIA, le jeu de Serge Belmont : éclatez les boules, dissipez le brouillard et révélez les photographies." />
+    <title>Bubble NostalgIA – Serge Belmont</title>
   </head>
   <body>
     <div id="stage">
@@ -38,15 +38,38 @@
         </div>
       </header>
 
-      <section id="overlay-start" class="overlay">
+      <section id="overlay-start" class="overlay home">
         <div class="start-card">
-          <p class="eyebrow">Le jeu officiel</p>
-          <h1>Serge Belmont</h1>
-          <h2>Bubble Reveal</h2>
+          <p class="artist">Serge Belmont</p>
+          <div class="ornament"><i></i><span>✦</span><i></i></div>
+          <h1>Bubble<br />Nostalg<em>IA</em></h1>
           <p class="tagline">Éclatez les boules, dissipez le brouillard<br />et révélez la photographie.</p>
           <button id="btn-play" class="btn primary" type="button">Jouer</button>
+          <button id="btn-collection" class="btn sepia" type="button">
+            Collection <span id="home-collection" class="count"></span>
+          </button>
           <p id="home-progress" class="home-progress"></p>
-          <p class="version">Version 0.2</p>
+          <p class="version">Version 0.3</p>
+        </div>
+      </section>
+
+      <section id="screen-collection" class="overlay collection hidden">
+        <header class="map-head">
+          <button id="btn-collection-home" class="icon-btn" type="button" aria-label="Retour à l'accueil">
+            <svg viewBox="0 0 24 24"><path d="M4 11.5 12 5l8 6.5" /><path d="M6.5 10v9h11v-9" /></svg>
+          </button>
+          <h3>Collection</h3>
+          <div class="pill"><b id="collection-count">0 / 0</b></div>
+        </header>
+        <div class="collection-progress"><div id="collection-fill"></div></div>
+        <div id="collection-scroll">
+          <p id="collection-hint" class="collection-hint"></p>
+          <div id="collection-grid"></div>
+        </div>
+        <div id="photo-viewer" class="hidden" role="dialog" aria-label="Photographie">
+          <img id="viewer-img" alt="" draggable="false" />
+          <p id="viewer-caption"></p>
+          <button id="btn-viewer-close" class="btn sepia" type="button">Fermer</button>
         </div>
       </section>
 

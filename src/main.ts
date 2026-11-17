@@ -1,4 +1,5 @@
 import '@fontsource-variable/fredoka';
+import '@fontsource/cormorant-garamond/600-italic.css';
 import './styles/main.css';
 import Phaser from 'phaser';
 import { view } from './app/view';

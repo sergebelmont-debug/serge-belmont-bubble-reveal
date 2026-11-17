@@ -67,7 +67,7 @@ type LevelInput = Pick<LevelDef, 'title' | 'difficulty' | 'shots' | 'colors' | '
   target: number;
   /** Nom du fichier photo (dans public/assets/photos/levels/), ou rien tant qu'elle n'est pas fournie. */
   photo?: string;
-  /** Nom du fichier miniature (dans public/assets/photos/thumbnails/). */
+  /** Nom du fichier miniature (dans public/assets/photos/thumbnails/). Défaut : même nom que la photo. */
   thumbnail?: string;
   description?: string;
   focusX?: number;
@@ -84,7 +84,7 @@ function defineLevels(list: LevelInput[]): LevelDef[] {
     title: l.title,
     photo: {
       file: l.photo ?? null,
-      thumbnail: l.thumbnail ?? null,
+      thumbnail: l.thumbnail ?? l.photo ?? null,
       description: l.description ?? (l.photo ? undefined : 'Photo provisoire'),
       focusX: l.focusX,
       focusY: l.focusY,
@@ -145,7 +145,7 @@ export const LEVELS: LevelDef[] = defineLevels([
   },
   // Niveau 6 — 3 murs : deux corniches et un pilier flottant.
   {
-    title: 'La valse', photo: 'serge-belmont-06.webp', difficulty: 'moyen', pattern: 'plein', colors: 5, rows: 8, shots: 34, target: 78, seed: 606,
+    title: 'Crépuscule', photo: 'serge-belmont-11.webp', difficulty: 'moyen', pattern: 'plein', colors: 5, rows: 8, shots: 34, target: 78, seed: 606,
     walls: [
       { type: 'h', row: 3, col: 1, len: 2.5 },
       { type: 'h', row: 3, col: 8, len: 2.5 },
@@ -197,7 +197,7 @@ export const LEVELS: LevelDef[] = defineLevels([
   },
   // Niveau 11 — 7 murs : trois piliers et quatre corniches en quinconce.
   {
-    title: 'Crépuscule', photo: 'serge-belmont-11.webp', difficulty: 'difficile', pattern: 'plein', colors: 5, rows: 9, shots: 40, target: 76, seed: 1111,
+    title: 'La valse', photo: 'serge-belmont-06.webp', difficulty: 'difficile', pattern: 'plein', colors: 5, rows: 9, shots: 40, target: 76, seed: 1111,
     walls: [
       { type: 'v', col: 2.9, row: 0, len: 2 },
       { type: 'v', col: 5.75, row: 0, len: 3 },
