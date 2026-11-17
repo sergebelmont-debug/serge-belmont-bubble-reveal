@@ -1,10 +1,12 @@
 import '@fontsource-variable/fredoka';
 import '@fontsource/cormorant-garamond/600-italic.css';
+import '@fontsource/great-vibes/400.css';
 import './styles/main.css';
 import Phaser from 'phaser';
 import { view } from './app/view';
 import { sfx } from './audio/Sfx';
 import { DESIGN_W, MAX_H, MIN_H } from './config/gameConfig';
+import { menuArt } from './render/menuArt';
 import { GameScene, type SceneData } from './scenes/GameScene';
 import { initUi } from './ui/Hud';
 
@@ -64,6 +66,7 @@ async function boot(): Promise<void> {
       const data: SceneData = { levelIndex, autostart: true };
       scene().scene.restart(data);
     },
+    menuArt: () => menuArt(scene()),
     pause: () => {
       if (scene().scene.isActive()) scene().scene.pause();
     },

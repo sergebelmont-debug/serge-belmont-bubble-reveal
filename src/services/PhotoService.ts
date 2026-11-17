@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import type { LevelDef } from '../data/levels';
+import { HOME_PHOTO, type LevelDef } from '../data/levels';
 import { mulberry32 } from '../core/rng';
 
 /**
@@ -13,6 +13,11 @@ export const photoTextureKey = (level: LevelDef): string => `photo-${level.id}`;
 
 export function photoUrl(level: LevelDef): string | null {
   return level.photo.file ? `${import.meta.env.BASE_URL}${PHOTO_DIR}${level.photo.file}` : null;
+}
+
+/** Photo de fond du menu d'accueil. */
+export function homePhotoUrl(): string {
+  return `${import.meta.env.BASE_URL}${PHOTO_DIR}${HOME_PHOTO}`;
 }
 
 export function thumbnailUrl(level: LevelDef): string | null {

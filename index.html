@@ -9,8 +9,8 @@
     <meta name="theme-color" content="#1d0b10" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="description" content="Bubble NostalgIA, le jeu de Serge Belmont : éclatez les boules, dissipez le brouillard et révélez les photographies." />
-    <title>Bubble NostalgIA – Serge Belmont</title>
+    <meta name="description" content="Bubble Nostalgia, le jeu de Serge Belmont : éclatez les boules, dissipez le brouillard et révélez les photographies." />
+    <title>Bubble Nostalgia – Serge Belmont</title>
   </head>
   <body>
     <div id="stage">
@@ -39,17 +39,23 @@
       </header>
 
       <section id="overlay-start" class="overlay home">
+        <div id="home-photo" class="home-photo"></div>
+        <div id="home-bubbles" class="home-art home-bubbles" aria-hidden="true"></div>
+        <div id="home-cannon" class="home-art home-cannon" aria-hidden="true"></div>
         <div class="start-card">
-          <p class="artist">Serge Belmont</p>
-          <div class="ornament"><i></i><span>✦</span><i></i></div>
-          <h1>Bubble<br />Nostalg<em>IA</em></h1>
-          <p class="tagline">Éclatez les boules, dissipez le brouillard<br />et révélez la photographie.</p>
-          <button id="btn-play" class="btn primary" type="button">Jouer</button>
-          <button id="btn-collection" class="btn sepia" type="button">
-            Collection <span id="home-collection" class="count"></span>
-          </button>
-          <p id="home-progress" class="home-progress"></p>
-          <p class="version">Version 0.3</p>
+          <div class="home-top">
+            <p class="artist">Serge Belmont</p>
+            <h1>Bubble Nostalgia</h1>
+          </div>
+          <div class="home-bottom">
+            <p class="tagline">Éclatez les boules, dissipez le brouillard<br />et révélez la photographie.</p>
+            <button id="btn-play" class="btn primary" type="button">Jouer</button>
+            <button id="btn-collection" class="btn sepia" type="button">
+              Collection <span id="home-collection" class="count"></span>
+            </button>
+            <p id="home-progress" class="home-progress"></p>
+            <p class="version">Version 0.4</p>
+          </div>
         </div>
       </section>
 

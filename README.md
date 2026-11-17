@@ -1,4 +1,4 @@
-# Bubble NostalgIA – Serge Belmont
+# Bubble Nostalgia – Serge Belmont
 
 Bubble Shooter mobile (web) : chaque combinaison dissipe un brouillard et révèle
 progressivement une photographie de Serge Belmont.

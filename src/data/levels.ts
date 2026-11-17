@@ -13,6 +13,9 @@
  */
 import type { WallDef } from '../core/walls';
 
+/** Photographie affichée en fond du menu d'accueil (nom de fichier dans public/assets/photos/levels/). */
+export const HOME_PHOTO = 'serge-belmont-01.webp';
+
 export type Difficulty ='facile' | 'moyen' | 'difficile' | 'expert';
 
 /** Forme de la disposition initiale des boules. */

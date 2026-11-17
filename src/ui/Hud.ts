@@ -2,13 +2,18 @@ import { bus, type LevelResult } from '../app/bus';
 import { sfx } from '../audio/Sfx';
 import { DESIGN_W } from '../config/gameConfig';
 import { LEVELS } from '../data/levels';
+import type { MenuArt } from '../render/menuArt';
+import { homePhotoUrl } from '../services/PhotoService';
 import { loadSave, writeSave } from '../services/SaveService';
 import { collectedCount, renderCollection } from './Collection';
+import { renderHomeArt } from './HomeArt';
 import { renderMap, totalStars } from './LevelMap';
 
 /** Interface HTML : accueil, carte des niveaux, barre d'état, écrans de fin de niveau. */
 export interface UiActions {
   startLevel(levelIndex: number): void;
+  /** Dessins des boules et du canon pour le décor du menu (null tant que le jeu n'est pas prêt). */
+  menuArt(): MenuArt | null;
   /** Met la scène de jeu en pause (carte affichée). */
   pause(): void;
   /** Relance la scène de jeu (retour à l'accueil). */
@@ -34,6 +39,9 @@ export function initUi(actions: UiActions): void {
   const soundBtn = $<HTMLButtonElement>('btn-sound');
   let levelIndex = 0;
   let lastScore = 0;
+  let homeArtDone = false;
+
+  $('home-photo').style.backgroundImage = `url("${homePhotoUrl()}")`;
 
   const hideAll = (): void => {
     for (const el of [hud, home, map, end, collection, viewer]) el.classList.add('hidden');
@@ -146,6 +154,13 @@ export function initUi(actions: UiActions): void {
   $('btn-next').addEventListener('click', () => play(levelIndex + 1));
 
   bus.on('ready', (e) => {
+    if (!homeArtDone) {
+      const art = actions.menuArt();
+      if (art) {
+        renderHomeArt($('home-bubbles'), $('home-cannon'), art);
+        homeArtDone = true;
+      }
+    }
     levelIndex = e.levelIndex;
     lastScore = 0;
   });
